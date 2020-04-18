@@ -97,16 +97,17 @@ PPO_DEFAULT_LEARNER_CONFIG.extend(BASE_LEARNER_CONFIG)
 PPO_DEFAULT_ENV_CONFIG = Config({
     'env_name': '',
     'action_repeat': 1,
-    'pixel_input': False,
+    'pixel_input': True,
     'use_grayscale': False,
-    'use_depth': False,
+    'use_depth': True,
+    'render': False,
     'frame_stacks': 1,
     'sleep_time': 0,
     'video': {
-        'record_video': False,
+        'record_video': True,
         'save_folder': None,
         'max_videos': 500,
-        'record_every': 5,
+        'record_every': 100,
     },
     'observation': {
         'pixel': ['camera0'],
