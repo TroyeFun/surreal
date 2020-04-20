@@ -1,4 +1,4 @@
-from .config import extend_config
+from ..config import extend_config
 
 # ======================== Agent-Learner side ========================
 BASE_LEARNER_CONFIG = {
@@ -152,13 +152,13 @@ LOCAL_SESSION_CONFIG = {
 
     'replay': {
         'collector_frontend_host': 'localhost',  # upstream from agents' pusher
-        'collector_frontend_port': 8001,
+        'collector_frontend_port': 7001,
         'collector_backend_host': 'localhost',  # upstream from agents' pusher
-        'collector_backend_port': 8002,
+        'collector_backend_port': 7002,
         'sampler_frontend_host': 'localhost',  # downstream to Learner request
-        'sampler_frontend_port': 8003,
+        'sampler_frontend_port': 7003,
         'sampler_backend_host': 'localhost',  # downstream to Learner request
-        'sampler_backend_port': 8004,
+        'sampler_backend_port': 7004,
         'max_puller_queue': 10000,  # replay side: pull queue size
         'evict_interval': 0.,  # in seconds
         'tensorboard_display': True,  # display replay stats on Tensorboard
@@ -169,17 +169,17 @@ LOCAL_SESSION_CONFIG = {
     },
     'ps': {
         'parameter_serving_frontend_host': 'localhost',
-        'parameter_serving_frontend_port': 8005,
+        'parameter_serving_frontend_port': 7005,
         'parameter_serving_backend_host': 'localhost',
-        'parameter_serving_backend_port': 8006,
+        'parameter_serving_backend_port': 7006,
         'shards': 2,
         'publish_host': 'localhost',  # upstream from learner
-        'publish_port': 8007
+        'publish_port': 7007
     },
     'tensorplex': {
         'host': 'localhost',
-        'port': 8008,
-        'tensorboard_port': 6007,
+        'port': 7008,
+        'tensorboard_port': 6006,
         'update_schedule': { # TODO: rename this to 'periodic'
             # for TensorplexWrapper:
             'training_env': 20,  # env record every N episodes
@@ -193,7 +193,7 @@ LOCAL_SESSION_CONFIG = {
     },
     'loggerplex': {
         'host': 'localhost',
-        'port': 8009,
+        'port': 7009,
         'enable_local_logger': True,
     },
     'agent': {
@@ -205,7 +205,7 @@ LOCAL_SESSION_CONFIG = {
     'learner': {
         'num_gpus': 0,
         'prefetch_host': 'localhost',
-        'prefetch_port': 8010,
+        'prefetch_port': 7010,
         'prefetch_processes': 2,
         'max_prefetch_queue': 10,  # learner side: max number of batches to prefetch
         'max_preprocess_queue': 2,  # learner side: max number of batches to preprocess

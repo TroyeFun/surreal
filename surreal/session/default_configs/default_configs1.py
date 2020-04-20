@@ -1,4 +1,4 @@
-from .config import extend_config
+from ..config import extend_config
 
 # ======================== Agent-Learner side ========================
 BASE_LEARNER_CONFIG = {

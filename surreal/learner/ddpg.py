@@ -1,4 +1,5 @@
 import torch
+import os
 import torch.nn as nn
 import numpy as np
 from .base import Learner
@@ -67,13 +68,17 @@ class DDPGLearner(Learner):
         self.frame_stack_concatenate_on_env = self.env_config.frame_stack_concatenate_on_env
 
         self.log.info('Initializing DDPG learner')
+        # GPU setting
+        # TODO: ppo_launch.args.learner_num_gpus not used
         self._num_gpus = session_config.learner.num_gpus
-        if not torch.cuda.is_available():
+        if not (torch.cuda.is_available() and 'CUDA_VISIBLE_DEVICES' in os.environ):
             self.gpu_ids = 'cpu'
             self.log.info('Using CPU')
         else:
+            assert len(os.environ['CUDA_VISIBLE_DEVICES']) == 1, os.environ['CUDA_VISIBLE_DEVICES']
+            #self.gpu_ids = 'cuda:{}'.format(os.environ['CUDA_VISIBLE_DEVICES'])
             self.gpu_ids = 'cuda:all'
-            self.log.info('Using GPU')
+            self.log.info('Using GPU: {}'.format(self.gpu_ids)) 
             self.log.info('cudnn version: {}'.format(torch.backends.cudnn.version()))
             torch.backends.cudnn.benchmark = True
             self._num_gpus = 1

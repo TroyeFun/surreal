@@ -11,6 +11,7 @@ from surreal.model.ppo_net import PPOModel, DiagGauss
 from surreal.env import ExpSenderWrapperMultiStepMovingWindowWithInfo
 from surreal.session import ConfigError
 from .base import Agent
+import os
 
 
 class PPOAgent(Agent):
@@ -65,10 +66,12 @@ class PPOAgent(Agent):
         # TODO: deprecate
         self._num_gpus = session_config.agent.num_gpus
 
-        if torch.cuda.is_available():
+        if torch.cuda.is_available() and 'CUDA_VISIBLE_DEVICES' in os.environ:
+            assert len(os.environ['CUDA_VISIBLE_DEVICES']) == 1, os.environ['CUDA_VISIBLE_DEVICES']
+            #self.gpu_ids = 'cuda:{}'.format(os.environ['CUDA_VISIBLE_DEVICES'])
             self.gpu_ids = 'cuda:all'
             if self.agent_mode not in ['eval_deterministic_local', 'eval_stochastic_local']:
-                self.log.info('PPO agent is using GPU')
+                self.log.info('PPO agent is using GPU: ' + self.gpu_ids)
                 # Note that user is responsible for only providing one GPU for the program
                 self.log.info('cudnn version: {}'.format(torch.backends.cudnn.version()))
             torch.backends.cudnn.benchmark = True

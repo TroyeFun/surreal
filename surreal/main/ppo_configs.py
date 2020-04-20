@@ -97,7 +97,7 @@ PPO_DEFAULT_LEARNER_CONFIG.extend(BASE_LEARNER_CONFIG)
 PPO_DEFAULT_ENV_CONFIG = Config({
     'env_name': '',
     'action_repeat': 1,
-    'pixel_input': False,   # Attention !
+    'pixel_input': True,   # Attention !
     'use_grayscale': False,
     'use_depth': True,
     'render': False,

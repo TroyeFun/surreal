@@ -1,6 +1,7 @@
 """
 DDPG actor class
 """
+import os
 import copy
 import collections
 import time
@@ -84,10 +85,12 @@ class DDPGAgent(Agent):
         #self.sigma = self.learner_config.algo.exploration.sigma
         print('Using exploration sigma', self.sigma)
 
-        if torch.cuda.is_available():
+        if torch.cuda.is_available() and 'CUDA_VISIBLE_DEVICES' in os.environ:
+            assert len(os.environ['CUDA_VISIBLE_DEVICES']) == 1, os.environ['CUDA_VISIBLE_DEVICES']
+            #self.gpu_ids = 'cuda:{}'.format(os.environ['CUDA_VISIBLE_DEVICES'])
             self.gpu_ids = 'cuda:all'
             if self.agent_mode not in ['eval_deterministic_local', 'eval_stochastic_local']:
-                self.log.info('DDPG agent is using GPU')
+                self.log.info('PPO agent is using GPU: ' + self.gpu_ids)
                 # Note that user is responsible for only providing one GPU for the program
                 self.log.info('cudnn version: {}'.format(torch.backends.cudnn.version()))
             torch.backends.cudnn.benchmark = True

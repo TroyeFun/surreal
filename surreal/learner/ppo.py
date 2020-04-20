@@ -1,4 +1,5 @@
 import torch
+import os
 import torch.nn as nn
 import torchx as tx
 from torchx.nn.hyper_scheduler import *
@@ -58,18 +59,22 @@ class PPOLearner(Learner):
         super().__init__(learner_config, env_config, session_config)
 
         # GPU setting
+        # TODO: ppo_launch.args.learner_num_gpus not used
         self.current_iteration = 0
         self.global_step = 0
-        if not torch.cuda.is_available():
+        self._num_gpus = session_config.learner.num_gpus
+        if not (torch.cuda.is_available() and 'CUDA_VISIBLE_DEVICES' in os.environ):
             self.gpu_option = 'cpu'
         else:
-            self.gpu_option = 'cuda:all'
-        self.use_cuda = torch.cuda.is_available()
+            assert len(os.environ['CUDA_VISIBLE_DEVICES']) == 1, os.environ['CUDA_VISIBLE_DEVICES']
+            #self.gpu_option = 'cuda:{}'.format(os.environ['CUDA_VISIBLE_DEVICES'])
+            self.gpu_option = 'cuda:all'  # it is right as only one gpu can be detected, why allocated to 2 gpu?
+        self.use_cuda = torch.cuda.is_available() and 'CUDA_VISIBLE_DEVICES' in os.environ
 
-        if not self.use_cuda:
-            self.log.info('Using CPU')
+        if not self.use_cuda: 
+            self.log.info('PPOLearner is using CPU')
         else:
-            self.log.info('Using GPU: {}'.format(self.gpu_option)) 
+            self.log.info('PPOLearner is using GPU: {}'.format(self.gpu_option)) 
 
         # RL general parameters
         self.gamma = self.learner_config.algo.gamma
