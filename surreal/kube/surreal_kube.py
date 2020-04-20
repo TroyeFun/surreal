@@ -15,6 +15,7 @@ from surreal.launch import (
     setup_network,
 )
 import surreal.utils as U
+from surreal.session import LOCAL_SESSION_CONFIG
 
 
 def _merge_setting_dictionaries(customize, base):
@@ -400,7 +401,8 @@ class KurrealParser(SymphonyParser):
                       ps=ps,
                       tensorboard=tensorboard,
                       tensorplex=tensorplex,
-                      loggerplex=loggerplex)
+                      loggerplex=loggerplex,
+                      session_config=LOCAL_SESSION_CONFIG)
 
         if 'nfs' in self.config:
             print('NFS mounted')

@@ -1,5 +1,5 @@
 from surreal.launch.setup_network import setup_network
-
+from surreal.session import LOCAL_SESSION_CONFIG
 
 def create_surreal_containerized(exp,
                                  nonagent_image,
@@ -82,7 +82,8 @@ def create_surreal_containerized(exp,
                   ps=ps,
                   tensorboard=tensorboard,
                   tensorplex=tensorplex,
-                  loggerplex=loggerplex)
+                  loggerplex=loggerplex,
+                  session_config=LOCAL_SESSION_CONFIG)
     return {
         'agents': agents,
         'evals': evals,

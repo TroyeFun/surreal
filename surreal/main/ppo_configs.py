@@ -210,7 +210,6 @@ class PPOLauncher(SurrealDefaultLauncher):
                             help='Set config values to settings that can run locally for unit testing')
 
         args = parser.parse_args(args=argv)
-        print('Debug: ', args)
 
         self.env_config.env_name = args.env
         self.env_config = make_env_config(self.env_config)

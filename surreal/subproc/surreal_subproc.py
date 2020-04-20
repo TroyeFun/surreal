@@ -11,6 +11,7 @@ from surreal.launch import (
     setup_network,
 )
 import surreal.utils as U
+from surreal.session import LOCAL_SESSION_CONFIG
 
 # Import to avoid duplicate build process
 import mujoco_py
@@ -180,7 +181,8 @@ class SubprocSurrealParser:
                       ps=ps,
                       tensorboard=tensorboard,
                       tensorplex=tensorplex,
-                      loggerplex=loggerplex)
+                      loggerplex=loggerplex,
+                      session_config=LOCAL_SESSION_CONFIG)
         self._setup_gpu(agents=agents,
                         evals=evals,
                         learner=learner,

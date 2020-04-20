@@ -10,6 +10,7 @@ from surreal.launch import (
     setup_network,
 )
 import surreal.utils as U
+from surreal.session import LOCAL_SESSION_CONFIG
 
 
 def _merge_setting_dictionaries(customize, base):
@@ -186,7 +187,8 @@ class TurrealParser(SymphonyParser):
                       ps=ps,
                       tensorboard=tensorboard,
                       tensorplex=tensorplex,
-                      loggerplex=loggerplex)
+                      loggerplex=loggerplex,
+                      session_config=LOCAL_SESSION_CONFIG)
         self._setup_gpu(agents=agents,
                         evals=evals,
                         learner=learner,
