@@ -131,6 +131,10 @@ class SubprocSurrealParser:
             executable=executable,
             config_commands=algorithm_args
         )
+        ps = exp.new_process(
+            'ps',
+            cmd=cmd_gen.get_command('ps'))
+
         learner = exp.new_process(
             'learner',
             cmd=cmd_gen.get_command('learner'))
@@ -140,9 +144,6 @@ class SubprocSurrealParser:
             'replay',
             cmd=cmd_gen.get_command('replay'))
 
-        ps = exp.new_process(
-            'ps',
-            cmd=cmd_gen.get_command('ps'))
 
         tensorboard = exp.new_process(
             'tensorboard',
@@ -206,6 +207,7 @@ class SubprocSurrealParser:
             No GPU, do nothing
         """
         actors = agents + evals
+        #print('Debug: surreal-subproc.py: ', os.environ)
         if gpus == "auto":
             if 'CUDA_VISIBLE_DEVICES' in os.environ:
                 gpus = os.environ['CUDA_VISIBLE_DEVICES']

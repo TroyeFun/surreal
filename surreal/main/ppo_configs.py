@@ -97,7 +97,7 @@ PPO_DEFAULT_LEARNER_CONFIG.extend(BASE_LEARNER_CONFIG)
 PPO_DEFAULT_ENV_CONFIG = Config({
     'env_name': '',
     'action_repeat': 1,
-    'pixel_input': True,
+    'pixel_input': False,   # Attention !
     'use_grayscale': False,
     'use_depth': True,
     'render': False,
@@ -210,6 +210,7 @@ class PPOLauncher(SurrealDefaultLauncher):
                             help='Set config values to settings that can run locally for unit testing')
 
         args = parser.parse_args(args=argv)
+        print('Debug: ', args)
 
         self.env_config.env_name = args.env
         self.env_config = make_env_config(self.env_config)

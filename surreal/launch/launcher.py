@@ -419,6 +419,8 @@ class SurrealDefaultLauncher(Launcher):
          .register_indexed_group('replay', 10))
 
         port = os.environ['SYMPH_TENSORPLEX_PORT']
+        print('Debug: tensorplex port: ', port)
+        print('Debug: os.environ', os.environ)
         tensorplex.start_server(port=port)
 
     def run_loggerplex(self):

@@ -373,3 +373,7 @@ class PPOModel(nnx.Module):
                 obs: dictionary of batched observations
         '''
         return obs / 255.0
+
+if __name__ == '__main__':
+    #model = PPO_Model()
+    pass
