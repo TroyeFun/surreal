@@ -216,7 +216,7 @@ LOCAL_SESSION_CONFIG = {
         'learner': {
             'restore_target': 0,
             'mode': 'history',
-            'keep_history': 2,
+            'keep_history': 8,
             'keep_best': 0, # TODO don't keep best unless we solve the learner score issue
             'periodic': 100000, # Save every 100000 steps
             'min_interval': 15 * 60, # No checkpoint less than 15 min apart.
@@ -224,7 +224,7 @@ LOCAL_SESSION_CONFIG = {
         'agent': {
             'restore_target': 0,
             'mode': 'history',
-            'keep_history': 2,
+            'keep_history': 8,
             'keep_best': 0, # TODO don't keep best unless we solve the learner score issue
             'periodic': 100,
         },

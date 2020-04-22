@@ -7,6 +7,7 @@ from operator import mul
 import functools
 import sys
 import gym
+import math
 
 
 class SpecFormat(U.StringEnum):
@@ -219,6 +220,7 @@ class RobosuiteWrapper(Wrapper):
         env.metadata = {}
         super().__init__(env)
         self.use_depth = env_config.use_depth and env_config.pixel_input or env_config.pcd_input
+        self.use_camera_info = env_config.pcd_input
         self._input_list = env_config.observation
         self._action_repeat = env_config.action_repeat or 1
 
@@ -279,6 +281,13 @@ class RobosuiteWrapper(Wrapper):
         for k in spec:
             spec[k] = tuple(np.array(spec[k]).shape)
 
+        if self.use_camera_info:
+            model = self.env.sim.model
+            cam_id = model.camera_name2id(self.env.camera_name)
+            spec['camera_mat'] = model.cam_mat0[cam_id]
+            fovy = model.cam_fovy[cam_id]
+            spec['camera_f'] = 0.5 * self.env.camera_height / math.tan(fovy * math.pi / 360)
+
         return self._add_modality(spec, verbose=True)
 
     def action_spec(self): # we haven't finalized the action spec of mujocomanip
@@ -327,6 +336,7 @@ class ObservationConcatenationWrapper(Wrapper):
                 assert len(shape) == 1
                 flat_observation_dim += shape[0]
             spec['low_dim'] = collections.OrderedDict([(self._concatenated_obs_name, (flat_observation_dim,))])
+
         return spec
 
     def action_spec(self):

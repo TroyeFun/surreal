@@ -73,6 +73,7 @@ def make_gym(env_name, env_config):
 def make_robosuite(env_name, env_config):
     import robosuite
     pixel_input = env_config.pixel_input or env_config.pcd_input
+    camera_depth = env_config.use_depth or env_config.pcd_input
 
     env = robosuite.make(
         env_name,
@@ -86,7 +87,7 @@ def make_robosuite(env_name, env_config):
         render_visual_mesh=True,
         camera_name='agentview',
         use_object_obs=(not pixel_input),
-        camera_depth=env_config.use_depth,
+        camera_depth=camera_depth,
         reward_shaping=True,
         # demo_config=env_config.demonstration,
     )

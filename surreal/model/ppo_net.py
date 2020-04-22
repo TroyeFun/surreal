@@ -8,7 +8,8 @@ import torch
 
 from .model_builders import *
 from .z_filter import ZFilter
-from .pointcnn.model import PCNNStemNetwork
+from .pointcnn.utils.model import PCNNStemNetwork
+from .pointcnn.utils.data_utils import Pix2PCD
 
 import itertools
 
@@ -144,6 +145,7 @@ class PPOModel(nnx.Module):
                                            self.model_config.cnn_feature_dim)
 
         if self.if_pcd_input:
+            self.pix2pcd = Pix2PCD(self.obs_spec['camera_mat'], self.obs_spec['camera_f'])
             self.pcnn_stem = PCNNStemNetwork(self.model_config.pcnn_feature_dim)
             if use_cuda:
                 device = torch.device('cuda')
@@ -296,7 +298,7 @@ class PPOModel(nnx.Module):
             obs_list.append(obs_pixel)
 
         if self.if_pcd_input:
-            obs_pcd = pix2pcd(obs['pixel']['camera0'])  #TODO
+            obs_pcd = self.pix2pcd(obs['pixel']['camera0'])  #TODO
             obs_pcd = self.pcnn_stem(obs_pcd)
             obs_list.append(obs_pcd)
 
@@ -334,7 +336,7 @@ class PPOModel(nnx.Module):
             obs_list.append(obs_pixel)
 
         if self.if_pcd_input:
-            obs_pcd = pix2pcd(obs['pixel']['camera0'])  #TODO
+            obs_pcd = self.pix2pcd(obs['pixel']['camera0'])  #TODO
             obs_pcd = self.pcnn_stem(obs_pcd)
             obs_list.append(obs_pcd)
             
