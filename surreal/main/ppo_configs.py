@@ -153,13 +153,13 @@ PPO_DEFAULT_SESSION_CONFIG = Config({
     'agent': {
         'fetch_parameter_mode': 'step',
         'fetch_parameter_interval': 100,  # 10 for without RNN
-        'num_gpus': 0,
+        'num_gpus': 1,
     },
     'sender': {
         'flush_iteration': 3,
     },
     'learner': {
-        'num_gpus': 0,
+        'num_gpus': 1,
     },
     'replay': {
         'max_puller_queue': 3,
