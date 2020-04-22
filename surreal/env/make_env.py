@@ -72,19 +72,20 @@ def make_gym(env_name, env_config):
 
 def make_robosuite(env_name, env_config):
     import robosuite
+    pixel_input = env_config.pixel_input or env_config.pcd_input
 
     env = robosuite.make(
         env_name,
         has_renderer=env_config.render,
         ignore_done=True,
-        use_camera_obs=env_config.pixel_input,
-        has_offscreen_renderer=env_config.pixel_input,
+        use_camera_obs=pixel_input,
+        has_offscreen_renderer=pixel_input,
         camera_height=84,
         camera_width=84,
         render_collision_mesh=False,
         render_visual_mesh=True,
         camera_name='agentview',
-        use_object_obs=(not env_config.pixel_input),
+        use_object_obs=(not pixel_input),
         camera_depth=env_config.use_depth,
         reward_shaping=True,
         # demo_config=env_config.demonstration,
@@ -92,7 +93,7 @@ def make_robosuite(env_name, env_config):
     env = RobosuiteWrapper(env, env_config)
     env = FilterWrapper(env, env_config)
     env = ObservationConcatenationWrapper(env)
-    if env_config.pixel_input:
+    if pixel_input:
         env = TransposeWrapper(env)
         if env_config.use_grayscale:
             env = GrayscaleWrapper(env)
@@ -107,7 +108,7 @@ def make_dm_control(env_name, env_config):
     from dm_control import suite
     from dm_control.suite.wrappers import pixels
     from .dm_wrapper import DMControlAdapter, DMControlDummyWrapper
-    pixel_input = env_config.pixel_input
+    pixel_input = env_config.pixel_input or env_config.pcd_input
     domain_name, task_name = env_name.split('-')
     env = suite.load(domain_name=domain_name, task_name=task_name)
     if pixel_input:

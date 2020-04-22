@@ -4,9 +4,11 @@ import surreal.utils as U
 import torch.nn.functional as F
 import numpy as np
 import torchx.nn as nnx
+import torch
 
 from .model_builders import *
 from .z_filter import ZFilter
+from .pointcnn.model import PCNNStemNetwork
 
 import itertools
 
@@ -115,6 +117,7 @@ class PPOModel(nnx.Module):
                  init_log_sig=0,
                  use_z_filter=False,
                  if_pixel_input=False,
+                 if_pcd_input=False,
                  rnn_config=None):
         super(PPOModel, self).__init__()
 
@@ -125,6 +128,7 @@ class PPOModel(nnx.Module):
         self.use_z_filter = use_z_filter
         self.init_log_sig = init_log_sig
         self.if_pixel_input = if_pixel_input
+        self.if_pcd_input = if_pcd_input
         self.rnn_config = rnn_config
 
         # compute low dimensional feature dimension
@@ -139,10 +143,17 @@ class PPOModel(nnx.Module):
             self.cnn_stem = CNNStemNetwork(self.obs_spec['pixel']['camera0'],
                                            self.model_config.cnn_feature_dim)
 
+        if self.if_pcd_input:
+            self.pcnn_stem = PCNNStemNetwork(self.model_config.pcnn_feature_dim)
+            if use_cuda:
+                device = torch.device('cuda')
+                self.pcnn = self.pcnn.to(device)
+
         # optional LSTM stem feature extractor
         self.rnn_stem = None
         if self.rnn_config.if_rnn_policy:
-            rnn_insize = self.low_dim + (self.model_config.cnn_feature_dim if self.if_pixel_input else 0)
+            rnn_insize = self.low_dim + (self.model_config.cnn_feature_dim if self.if_pixel_input else 0) + \
+                    (self.model.pcnn_feature_dim if self.if_pcd_input else 0)
             self.rnn_stem = nn.LSTM(rnn_insize,
                                     self.rnn_config.rnn_hidden,
                                     self.rnn_config.rnn_layer,
@@ -152,7 +163,8 @@ class PPOModel(nnx.Module):
                 self.rnn_stem = self.rnn_stem.to(device)
 
         # computing final feature dimension for leaf actor/critic network
-        input_size = self.low_dim + (self.model_config.cnn_feature_dim if self.if_pixel_input else 0)
+        input_size = self.low_dim + (self.model_config.cnn_feature_dim if self.if_pixel_input else 0) + \
+                (self.model.pcnn_feature_dim if self.if_pcd_input else 0)
         input_size = self.rnn_config.rnn_hidden if self.rnn_config.if_rnn_policy else input_size
 
         self.actor = PPO_ActorNetwork(input_size, 
@@ -185,6 +197,8 @@ class PPOModel(nnx.Module):
         self.actor.zero_grad()
         if self.if_pixel_input:
             self.cnn_stem.zero_grad()
+        if self.if_pcd_input:
+            self.pcnn_stem.zero_grad()
         if self.rnn_config.if_rnn_policy:
             self.rnn_stem.zero_grad()
 
@@ -196,6 +210,8 @@ class PPOModel(nnx.Module):
         self.critic.zero_grad()
         if self.if_pixel_input:
             self.cnn_stem.zero_grad()
+        if self.if_pcd_input:
+            self.pcnn_stem.zero_grad()
         if self.rnn_config.if_rnn_policy:
             self.rnn_stem.zero_grad()
 
@@ -207,6 +223,8 @@ class PPOModel(nnx.Module):
         params = self.actor.parameters()
         if self.if_pixel_input:
             params = itertools.chain(params, self.cnn_stem.parameters())
+        if self.if_pcd_input:
+            params = itertools.chain(params, self.pcnn_stem.parameters())
         if self.rnn_config.if_rnn_policy:
             params = itertools.chain(params, self.rnn_stem.parameters())
         return params
@@ -219,6 +237,8 @@ class PPOModel(nnx.Module):
         params = self.critic.parameters()
         if self.if_pixel_input:
             params = itertools.chain(params, self.cnn_stem.parameters())
+        if self.if_pcd_input:
+            params = itertools.chain(params, self.pcnn_stem.parameters())
         if self.rnn_config.if_rnn_policy:
             params = itertools.chain(params, self.rnn_stem.parameters())
         return params
@@ -237,6 +257,9 @@ class PPOModel(nnx.Module):
 
         if self.if_pixel_input:
             self.cnn_stem.load_state_dict(net.cnn_stem.state_dict())
+
+        if self.if_pcd_input:
+            self.pcnn_stem.load_state_dict(net.pcnn_stem.state_dict())
 
         if self.use_z_filter:
             self.z_filter.load_state_dict(net.z_filter.state_dict())
@@ -272,6 +295,11 @@ class PPOModel(nnx.Module):
             obs_pixel = self.cnn_stem(obs_pixel)
             obs_list.append(obs_pixel)
 
+        if self.if_pcd_input:
+            obs_pcd = pix2pcd(obs['pixel']['camera0'])  #TODO
+            obs_pcd = self.pcnn_stem(obs_pcd)
+            obs_list.append(obs_pcd)
+
         obs = torch.cat([ob for ob in obs_list if ob is not None], dim=-1)
             
         if self.rnn_config.if_rnn_policy:
@@ -305,6 +333,11 @@ class PPOModel(nnx.Module):
             obs_pixel = self.cnn_stem(obs_pixel)
             obs_list.append(obs_pixel)
 
+        if self.if_pcd_input:
+            obs_pcd = pix2pcd(obs['pixel']['camera0'])  #TODO
+            obs_pcd = self.pcnn_stem(obs_pcd)
+            obs_list.append(obs_pcd)
+            
         obs = torch.cat([ob for ob in obs_list if ob is not None], dim=-1)
 
         if self.rnn_config.if_rnn_policy:
@@ -336,6 +369,11 @@ class PPOModel(nnx.Module):
             obs_pixel = self._scale_image(obs_pixel)
             obs_pixel = self.cnn_stem(obs_pixel) 
             obs_list.append(obs_pixel)
+
+        if self.if_pcd_input:
+            obs_pcd = process_pcd(obs['pixel']['camera0'])  #TODO
+            obs_pcd = self.pcnn_stem(obs_pcd)
+            obs_list.append(obs_pcd)
 
         obs = torch.cat([ob for ob in obs_list if ob is not None], dim=-1)
 

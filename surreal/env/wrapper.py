@@ -218,7 +218,7 @@ class RobosuiteWrapper(Wrapper):
         # dm_control envs don't have metadata
         env.metadata = {}
         super().__init__(env)
-        self.use_depth = env_config.use_depth and env_config.pixel_input
+        self.use_depth = env_config.use_depth and env_config.pixel_input or env_config.pcd_input
         self._input_list = env_config.observation
         self._action_repeat = env_config.action_repeat or 1
 

@@ -146,6 +146,7 @@ class PPOLearner(Learner):
                 init_log_sig=self.init_log_sig,
                 use_z_filter=self.use_z_filter,
                 if_pixel_input=self.env_config.pixel_input,
+                if_pcd_input=self.env_config.pcd_input,
                 rnn_config=self.learner_config.algo.rnn,
             )
             self.ref_target_model = PPOModel(
@@ -156,6 +157,7 @@ class PPOLearner(Learner):
                 init_log_sig=self.init_log_sig,
                 use_z_filter=self.use_z_filter,
                 if_pixel_input=self.env_config.pixel_input,
+                if_pcd_input=self.env_config.pcd_input,
                 rnn_config=self.learner_config.algo.rnn,
             )
             self.ref_target_model.update_target_params(self.model)

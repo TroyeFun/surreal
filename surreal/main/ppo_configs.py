@@ -18,6 +18,7 @@ PPO_DEFAULT_LEARNER_CONFIG = Config({
         'actor_fc_hidden_sizes': [300, 200],
         'critic_fc_hidden_sizes': [300, 200],
         'cnn_feature_dim': 256,
+        'pcnn_feature_dim': 32,
         'use_layernorm': False,
     },
     'algo': {
@@ -100,6 +101,7 @@ PPO_DEFAULT_ENV_CONFIG = Config({
     'pixel_input': True,   # Attention !
     'use_grayscale': False,
     'use_depth': True,
+    'pcd_input': False,  # point cloud
     'render': False,
     'frame_stacks': 1,
     'sleep_time': 0,
