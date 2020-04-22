@@ -263,6 +263,7 @@ class Agent(object, metaclass=U.AutoInitializeMeta):
         self.post_episode()
 
         if self.agent_mode in ['eval_deterministic_local', 'eval_stochastic_local']:
+            print('Episode {} reward {}'.format(self.current_episode, total_reward))
             return
 
         if self.current_episode % 20 == 0:
