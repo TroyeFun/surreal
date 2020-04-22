@@ -8,7 +8,10 @@ from .base import Learner
 from .aggregator import MultistepAggregatorWithInfo 
 from surreal.model.ppo_net import PPOModel, DiagGauss
 from surreal.model.reward_filter import RewardFilter
-from surreal.session import Config, extend_config, BASE_SESSION_CONFIG, BASE_LEARNER_CONFIG, ConfigError
+from surreal.session import (
+    Config, extend_config, BASE_SESSION_CONFIG, 
+    BASE_LEARNER_CONFIG, ConfigError, PeriodicTracker)
+import ipdb
 
 class PPOLearner(Learner):
     '''
@@ -57,6 +60,8 @@ class PPOLearner(Learner):
     '''
     def __init__(self, learner_config, env_config, session_config):
         super().__init__(learner_config, env_config, session_config)
+        # override super._ps_publish_tracker
+        self._ps_publish_tracker = PeriodicTracker(self.learner_config.parameter_publish.exp_interval // self.learner_config.replay.batch_size)
 
         # GPU setting
         # TODO: ppo_launch.args.learner_num_gpus not used
@@ -625,19 +630,20 @@ class PPOLearner(Learner):
             'ppo': self.model,
         }
 
-    def publish_parameter(self, iteration, message=''):
-        """
-        Learner publishes latest parameters to the parameter server only when 
-        accumulated enough experiences specified by 
-            learner_config.algo.network.update_target.interval
-        Note: this overrides the base class publish_parameter method
-        Args:
-            iteration: the current number of learning iterations
-            message: optional message, must be pickleable.
-        """
-        if  self.exp_counter >= self.learner_config.parameter_publish.exp_interval:
-            self._ps_publisher.publish(iteration, message=message)
-            self._post_publish()  
+#    def publish_parameter(self, iteration, message=''):
+#        """
+#        Learner publishes latest parameters to the parameter server only when 
+#        accumulated enough experiences specified by 
+#            learner_config.algo.network.update_target.interval
+#        Note: this overrides the base class publish_parameter method
+#        Args:
+#            iteration: the current number of learning iterations
+#            message: optional message, must be pickleable.
+#        """
+#        ipdb.set_trace()
+#        if  self.exp_counter >= self.learner_config.parameter_publish.exp_interval:
+#            self._ps_publisher.publish(iteration, message=message)
+#            self._post_publish()  
 
     def _post_publish(self):
         '''

@@ -16,6 +16,7 @@ from surreal.session import (
     Config
 )
 from surreal.distributed import ParameterPublisher, LearnerDataPrefetcher
+import ipdb
 
 
 class Learner(metaclass=U.AutoInitializeMeta):
@@ -142,6 +143,10 @@ class Learner(metaclass=U.AutoInitializeMeta):
             message: optional message, must be pickleable.
         """
         self._ps_publisher.publish(iteration, message=message)
+        self._post_publish()
+
+    def _post_publish(self):
+        pass
 
     ######
     # Getting data

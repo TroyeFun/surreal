@@ -16,6 +16,7 @@ from surreal.env import (
     EvalTensorplexMonitor,
     VideoWrapper
 )
+import ipdb
 
 AGENT_MODES = ['training', 'eval_deterministic', 'eval_stochastic', 
     'eval_deterministic_local', 'eval_stochastic_local']
@@ -238,8 +239,10 @@ class Agent(object, metaclass=U.AutoInitializeMeta):
         env = self.get_env()
         env = self.prepare_env(env)
         self.env = env
+        ipdb.set_trace()
         if self.agent_mode == "training":
             self.fetch_parameter()
+        ipdb.set_trace()
 
     def main_loop(self):
         """
@@ -358,6 +361,7 @@ class Agent(object, metaclass=U.AutoInitializeMeta):
             Extends base class fetch_parameters to add some logging
         """
         params, info = self._ps_client.fetch_parameter_with_info()
+        print('Debug: param fetched. Info: ', info)
         if params:
             params = U.deserialize(params)
             params = self.on_parameter_fetched(params, info)
