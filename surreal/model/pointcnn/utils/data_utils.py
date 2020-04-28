@@ -173,23 +173,41 @@ def get_random_pcd(num_points, range=(-1,1)):
 
 class Pix2PCD:
 
-    def __init__(self, camera_mat, camera_pos, camera_f, num_points=128):
+    def __init__(self, camera_mat, camera_pos, camera_f, image_shape, use_cuda=True, num_points=128):
         """
-        camera_mat: 4x4 np.array
-        camera_f: float
-        color: ...
-        have not supported cpu
+        camera_mat: 3x3 np.array  -- spec['camera_mat']
+        cmaera_pos: 3x np.array   -- spec['camera_pos']
+        camera_f: float           -- spec['camera_f']
+        image_shape: [h, w, c] np.array    -- spec['image']
+
         """
-        self.camera_mat = torch.from_numpy(camera_mat).cuda().view(3,3)
-        self.camera_pos = torch.from_numpy(camera_pos).cuda().view(3,1)
+        self.camera_mat = torch.from_numpy(camera_mat).view(3,3)   # rotation matrix
+        self.camera_pos = torch.from_numpy(camera_pos).view(3,1)
         self.camera_f = camera_f
+        self.use_cuda = use_cuda
         self.num_points = num_points
+
+        # calculate (x, y) in pixel coordinate
+        w, h = image_shape[:1]
+        self.x_pix = torch.arange(w) - (w - 1)/2
+        self.x_pix = self.x_pix.view(1, -1).repeat(h, 1)
+        self.y_pix = torch.arange(h) - (h - 1)/2
+        self.y_pix = self.y_pix.view(-1, 1).repeat(1, w)
         self.hsv_range = {
             'blue': [[100, 150, 150], [124, 255, 255]],  # [lower, upper]
         }
 
+        if use_cuda:
+            self.camera_mat = self.camera_mat.cuda()
+            self.camera_pos = self.camera_pos.cuda()
+            self.x_pix = self.x_pix.cuda()
+            self.y_pix = self.y_pix.cuda()
+
     def __call__(self, rgbd_img_batch, color):
-        """would this part be time-comsuming?"""
+        """would this part be time-comsuming?
+        rgbd_img_batch: N x 4 x H x W, torch.Tensor
+        color: 'blue', 'yellow', 'red', 'green'
+        """
         lower, upper = np.array(self.hsv_range[color][0]), np.array(self.hsv_range[color][1])
         print('debug: rgbd_img_batch shape: ', rgbd_img_batch.shape)
 
@@ -197,26 +215,23 @@ class Pix2PCD:
         color_imgs = color_imgs.permute(0, 2, 3, 1)
         color_imgs_np = color_imgs.cpu().numpy()
 
-        n, w, h, _ = color_imgs.shape
+        n = color_imgs.shape[0]
 
-        # calculate (x, y) in pixel coordinate
-        x_pix = torch.arange(w).cuda() - (w - 1)/2
-        x_pix = x_pix.view(1, -1).repeat(h, 1)
-        y_pix = torch.arange(h).cuda() - (h - 1)/2
-        y_pix = y_pix.view(-1, 1).repeat(1, w)
 
         pcds = []
         for idx in range(n):
             depth_img = depth_imgs[idx]
-            hsv_img = cv2.cvtColor(color_imgs_np[idx], cv2.COLOR_BGR2HSV)
+            hsv_img = cv2.cvtColor(color_imgs_np[idx], cv2.COLOR_RGB2HSV)
             mask = cv2.inRange(hsv_img, lower, upper)
-            mask = torch.from_numpy(mask).cuda()
+            mask = torch.from_numpy(mask)
+            if self.use_cuda:
+                mask = mask.cuda()
             mask_index = mask > 0
     
             print('debug: {} points detected'.format(mask_index.sum().item()))
             if mask_index.sum() > 0:
-                x_pcd = x_pix * depth_img / self.camera_f
-                y_pcd = y_pix * depth_img / self.camera_f
+                x_pcd = self.x_pix * depth_img / self.camera_f
+                y_pcd = self.y_pix * depth_img / self.camera_f
 
                 # apply mask
                 x_pcd = x_pcd[mask_index]
