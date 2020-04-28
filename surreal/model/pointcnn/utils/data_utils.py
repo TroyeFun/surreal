@@ -234,7 +234,7 @@ class Pix2PCD:
                 y_pcd = self.y_pix * depth_img / self.camera_f
 
                 # apply mask
-                x_pcd = x_pcd[mask_index]
+                x_pcd = -x_pcd[mask_index]
                 y_pcd = -y_pcd[mask_index]
                 z_pcd = -depth_img[mask_index]
                 pcd = torch.stack([x_pcd, y_pcd, z_pcd], dim=0)
