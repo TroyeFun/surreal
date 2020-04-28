@@ -193,8 +193,11 @@ class Pix2PCD:
         self.x_pix = self.x_pix.view(1, -1).repeat(h, 1)
         self.y_pix = torch.arange(h) - (h - 1)/2
         self.y_pix = self.y_pix.view(-1, 1).repeat(1, w)
-        self.hsv_range = {
-            'blue': [[100, 150, 150], [124, 255, 255]],  # [lower, upper]
+        self.hsv_range = {  # [lower, upper]
+            'blue':   [[115,150,150],[125,255,255]],  # rgba [0, 0, 3, 1]
+            'green':  [[55 ,150,150],[65 ,255,255]],  # rgba [0, 3, 0, 1]
+            'red':    [[0  ,150,150],[10 ,255,255]],  # rgba [3, 0, 0, 1]
+            'yellow': [[25 ,150,150],[35 ,255,255]],  # rgba [3, 3, 0, 1]
         }
 
         if use_cuda:
@@ -208,11 +211,11 @@ class Pix2PCD:
         rgbd_img_batch: N x 4 x H x W, torch.Tensor
         color: 'blue', 'yellow', 'red', 'green'
         """
-        lower, upper = np.array(self.hsv_range[color][0]), np.array(self.hsv_range[color][1])
+        lower, upper = np.array(self.hsv_range[color])
         print('debug: rgbd_img_batch shape: ', rgbd_img_batch.shape)
 
         color_imgs, depth_imgs = rgbd_img_batch[:, :3, :, :], rgbd_img_batch[:, 3, :, :]
-        color_imgs = color_imgs.permute(0, 2, 3, 1)
+        color_imgs = color_imgs.permute(0, 2, 3, 1)  # NHWC
         color_imgs_np = color_imgs.cpu().numpy()
 
         n = color_imgs.shape[0]
