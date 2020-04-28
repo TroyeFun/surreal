@@ -285,6 +285,7 @@ class RobosuiteWrapper(Wrapper):
             model = self.env.sim.model
             cam_id = model.camera_name2id(self.env.camera_name)
             spec['camera_mat'] = model.cam_mat0[cam_id]
+            spec['camera_pos'] = model.cam_pos0[cam_id]
             fovy = model.cam_fovy[cam_id]
             spec['camera_f'] = 0.5 * self.env.camera_height / math.tan(fovy * math.pi / 360)
 
