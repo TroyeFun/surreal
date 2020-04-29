@@ -187,6 +187,7 @@ def get_loggerplex_client(name, session_config):
         local_logger_stream='stdout',
         local_logger_level=C.local_logger_level,
         local_logger_time_format=C.local_logger_time_format,
+        #local_logger_format=C.local_logger_format,
     )
 
 

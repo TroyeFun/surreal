@@ -107,10 +107,11 @@ BASE_SESSION_CONFIG = {
         'overwrite': False,
         'level': 'info',
         'show_level': True,
-        'time_format': 'hms',
+        'time_format': 'dhm',
         'enable_local_logger': '_bool_',
         'local_logger_level': 'info',
-        'local_logger_time_format': 'hms'
+        'local_logger_time_format': 'dhm',
+        'local_logger_format': '[{asctime}][{filename}][line:{lineno}]',
     },
     'agent': {
         'fetch_parameter_mode': '_str_',
