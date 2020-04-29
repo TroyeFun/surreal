@@ -4,7 +4,7 @@ from surreal.env import make_env
 from surreal.session import Config
 
 env_config = Config({
-    'env_name': 'mujocomanip:BaxterLiftEnv',
+    'env_name': 'robosuite:BaxterLift',
     'pixel_input': True,
     'frame_stacks': 3,
     'sleep_time': 0.0,
@@ -24,7 +24,7 @@ env_config = Config({
     },
 })
 
-writer = imageio.get_writer('baxter_lift.mp4', fps=20)
+writer = imageio.get_writer('../../baxter_lift.mp4', fps=20)
 env, env_config = make_env(env_config)
 
 obs = env.reset()

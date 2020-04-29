@@ -80,9 +80,10 @@ def integration_test(temp_path,
         '--num-agents',
         '1',
         '--env',
-        'gym:HalfCheetah-v2',
+        #'gym:HalfCheetah-v2',
         # 'robosuite:SawyerLift',
         # 'dm_control:cartpole-balance',
+        env,
         '--experiment-folder',
         str(temp_path)] + additional_args
 

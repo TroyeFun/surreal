@@ -293,12 +293,16 @@ class Learner(metaclass=U.AutoInitializeMeta):
         Returns:
             saved(bool): whether save() is actually called or not
         """
-        return self._periodic_checkpoint.save(
+        saved = self._periodic_checkpoint.save(
             score=score,
             global_steps=global_steps,
             reload_metadata=False,
             **info,
         )
+        if saved:
+            self.log.info('Checkpoint {} saved. Score {}'.format(global_steps, score))
+
+        return saved
 
     def restore_checkpoint(self):
         SC = self.session_config
