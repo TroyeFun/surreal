@@ -223,7 +223,7 @@ class RandPointCNN(nn.Module):
         self.P = P
 
     def forward(self, x : Tuple[UFloatTensor,  # (N, x, dims)
-                                UFloatTensor]  # (N, x, dims)
+                                UFloatTensor]  # (N, x, C_in)
                ) -> Tuple[UFloatTensor,        # (N, P, dims)
                           UFloatTensor]:       # (N, P, C_out)
         """
@@ -262,7 +262,7 @@ class PCNNStemNetwork(nn.Module):
         self.fc = Dense(64, D_out)
 
     def forward(self, x):
-        x = self.pcnn(x)
+        x = self.pcnn((x,x))
         x = self.fc(x[1])
         x = x.mean(dim=1)
         return x

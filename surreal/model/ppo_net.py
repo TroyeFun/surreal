@@ -145,7 +145,11 @@ class PPOModel(nnx.Module):
                                            self.model_config.cnn_feature_dim)
 
         if self.if_pcd_input:
-            self.pix2pcd = Pix2PCD(self.obs_spec['camera_mat'], self.obs_spec['camera_f'])
+            self.pix2pcd = Pix2PCD(self.obs_spec['camera_mat'], 
+                                  self.obs_spec['camera_pos'],
+                                  self.obs_spec['camera_f'],
+                                  self.obs_spec['image'],
+                                  use_cuda)
             self.pcnn_stem = PCNNStemNetwork(self.model_config.pcnn_feature_dim)
             if use_cuda:
                 device = torch.device('cuda')
@@ -298,7 +302,7 @@ class PPOModel(nnx.Module):
             obs_list.append(obs_pixel)
 
         if self.if_pcd_input:
-            obs_pcd = self.pix2pcd(obs['pixel']['camera0'])  #TODO
+            obs_pcd = self.pix2pcd(obs['pixel']['camera0'], obs['target_color']) 
             obs_pcd = self.pcnn_stem(obs_pcd)
             obs_list.append(obs_pcd)
 

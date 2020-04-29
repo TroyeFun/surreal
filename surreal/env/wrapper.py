@@ -221,6 +221,7 @@ class RobosuiteWrapper(Wrapper):
         super().__init__(env)
         self.use_depth = env_config.use_depth and env_config.pixel_input or env_config.pcd_input
         self.use_camera_info = env_config.pcd_input
+        self.need_target_color = env_config.pcd_input
         self._input_list = env_config.observation
         self._action_repeat = env_config.action_repeat or 1
 
@@ -254,6 +255,9 @@ class RobosuiteWrapper(Wrapper):
 
         if self.use_depth:
             obs['image'] = np.concatenate((obs['image'], np.expand_dims(obs['depth'], 2)), 2)
+
+        if self.need_target_color:
+            obs['target_color'] = self.env.target_color
 
         return self._add_modality(obs), reward, done, info
 
@@ -333,10 +337,13 @@ class ObservationConcatenationWrapper(Wrapper):
         spec = self.env.observation_spec()
         flat_observation_dim = 0
         if 'low_dim' in spec:
+            keys = []
             for k, shape in spec['low_dim'].items():
                 assert len(shape) == 1
                 flat_observation_dim += shape[0]
+                keys.append((k, shape[0]))
             spec['low_dim'] = collections.OrderedDict([(self._concatenated_obs_name, (flat_observation_dim,))])
+            print("obs['low_dim'] includes modalities: ", keys)
 
         return spec
 
