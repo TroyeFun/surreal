@@ -239,6 +239,7 @@ class Agent(object, metaclass=U.AutoInitializeMeta):
         env = self.get_env()
         env = self.prepare_env(env)
         self.env = env
+        self.log.info('Observation spec:\n' + str(self.env_config.obs_spec))
         if self.agent_mode == "training":
             self.fetch_parameter()
 

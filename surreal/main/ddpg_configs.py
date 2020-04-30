@@ -110,6 +110,7 @@ DDPG_DEFAULT_ENV_CONFIG = Config({
     'use_demonstration': False,
     # If true, DDPG will expect an image at obs['pixel']['camera0']
     'pixel_input': False,
+    'pcd_input': False,
     'use_grayscale': False,
     # Stacks previous image frames together to provide history information
     'frame_stacks': 3,
@@ -128,7 +129,7 @@ DDPG_DEFAULT_ENV_CONFIG = Config({
         'record_video': True,
         'save_folder': None,
         'max_videos': 500,
-        'record_every': 20,
+        'record_every': 100,
     },
     # observation: if using FilterWrapper, any input not listed will be thrown out.
     # For example, if an observation had a value at obs['pixel']['badkey'], that value will be ignored
