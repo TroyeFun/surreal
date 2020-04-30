@@ -337,13 +337,11 @@ class ObservationConcatenationWrapper(Wrapper):
         spec = self.env.observation_spec()
         flat_observation_dim = 0
         if 'low_dim' in spec:
-            keys = []
+            spec['low_dim_raw'] = spec['low_dim']
             for k, shape in spec['low_dim'].items():
                 assert len(shape) == 1
                 flat_observation_dim += shape[0]
-                keys.append((k, shape[0]))
             spec['low_dim'] = collections.OrderedDict([(self._concatenated_obs_name, (flat_observation_dim,))])
-            print("obs['low_dim'] includes modalities: ", keys)
 
         return spec
 

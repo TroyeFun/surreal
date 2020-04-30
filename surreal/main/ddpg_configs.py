@@ -208,6 +208,7 @@ DDPG_BLOCK_LIFTING_ENV_CONFIG = Config({
     'num_agents': '_int_',
     # If true, DDPG will expect an image at obs['pixel']['camera0']
     'pixel_input': True,
+    'pcd_input': False,
     'use_grayscale': False,
     # Stacks previous image frames together to provide history information
     'frame_stacks': 3,
