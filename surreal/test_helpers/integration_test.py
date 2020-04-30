@@ -2,6 +2,7 @@ import os
 import sys
 import psutil
 import subprocess
+import time
 
 
 # Currently planned tests
@@ -9,15 +10,13 @@ import subprocess
 # DDPG mujocomanip
 # PPO dm_control
 # PPO mujocomanip
+from ipdb import set_trace as pdb
 
 
 def _setup_env():
     """
     Setup the necessary environment variables
     """
-    os.environ["SYMPH_PS_BACKEND_PORT"] = "7006"
-    os.environ["SYMPH_PARAMETER_PUBLISH_PORT"] = "7001"
-    os.environ["SYMPH_SAMPLER_FRONTEND_ADDR"] = "7004"
     os.environ["SYMPHONY_PARAMETER_SERVER_HOST"] = "127.0.0.1"
     os.environ["SYMPH_TENSORPLEX_HOST"] = "127.0.0.1"
     os.environ["SYMPH_TENSORPLEX_PORT"] = "7009"
@@ -27,8 +26,10 @@ def _setup_env():
     os.environ["SYMPH_COLLECTOR_FRONTEND_PORT"] = "7005"
     os.environ["SYMPH_PS_FRONTEND_HOST"] = "127.0.0.1"
     os.environ["SYMPH_PS_FRONTEND_PORT"] = "7008"
+    os.environ["SYMPH_PS_BACKEND_PORT"] = "7006"
     os.environ["SYMPH_SAMPLER_FRONTEND_HOST"] = "127.0.0.1"
     os.environ["SYMPH_SAMPLER_FRONTEND_PORT"] = "7003"
+    os.environ["SYMPH_SAMPLER_FRONTEND_ADDR"] = "7004"
     os.environ["SYMPH_SAMPLER_BACKEND_HOST"] = "127.0.0.1"
     os.environ["SYMPH_SAMPLER_BACKEND_PORT"] = "7002"
     os.environ["SYMPH_PARAMETER_PUBLISH_HOST"] = "127.0.0.1"
@@ -92,7 +93,7 @@ def integration_test(temp_path,
 
     subprocesses = []
 
-    for module in ['replay', 'ps', 'eval-0']:  # tensorboard,
+    for module in ['replay', 'ps']: #, 'eval-0']:  # tensorboard,
         subprocesses.append(subprocess.Popen([sys.executable,
                                               '-u',
                                               config_path,
@@ -101,6 +102,9 @@ def integration_test(temp_path,
         print(module + '=' * 20 + 'done')
     print('Supplementary components launched')
 
+    if True: # render
+        launcher.env_config.render = True
+        launcher.env_config.sleep_time = 0.0
     launcher.setup(args)
 
     print('Launcher setup')
@@ -114,6 +118,11 @@ def integration_test(temp_path,
     learner.main_setup()
 
     print('Learner setup')
+    
+    print('waiting for setup')
+    time.sleep(5)
+    print('All setup')
+    pdb()
 
     for i in range(2):
         print('Iteration {}'.format(i))

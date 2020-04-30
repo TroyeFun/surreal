@@ -16,7 +16,7 @@ from surreal.env import (
     EvalTensorplexMonitor,
     VideoWrapper
 )
-import ipdb
+from ipdb import set_trace as pdb
 
 AGENT_MODES = ['training', 'eval_deterministic', 'eval_stochastic', 
     'eval_deterministic_local', 'eval_stochastic_local']
@@ -250,12 +250,22 @@ class Agent(object, metaclass=U.AutoInitializeMeta):
         self.pre_episode()
         obs, info = env.reset()
         total_reward = 0.0
+
+        step = 0
         while True:
             if self.render:
-                env.unwrapped.render() # TODO: figure out why it needs to be unwrapped
+                env.unwrapped.render() # TODO: figure out why it needs to be unwrapped: 
+                                       # env.render() return env.sim.render() i.e. image from camera (see wrapper.RobosuiteWrapper._render)
+                                       # env.unwrapped.render() create a on-screen simulator
             self.pre_action(obs)
             action = self.act(obs)
             obs_next, reward, done, info = env.step(action)
+            
+            #print('debug rendering', step)
+            step += 1
+            env.unwrapped.render()
+            #pdb()
+
             total_reward += reward
             self.post_action(obs, action, obs_next, reward, done, info)
             obs = obs_next
