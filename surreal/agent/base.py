@@ -251,7 +251,7 @@ class Agent(object, metaclass=U.AutoInitializeMeta):
         obs, info = env.reset()
         total_reward = 0.0
 
-        step = 0
+        flag_debug = True
         while True:
             if self.render:
                 env.unwrapped.render() # TODO: figure out why it needs to be unwrapped: 
@@ -261,10 +261,15 @@ class Agent(object, metaclass=U.AutoInitializeMeta):
             action = self.act(obs)
             obs_next, reward, done, info = env.step(action)
             
-            #print('debug rendering', step)
-            step += 1
+            #print('debug rendering', env.unwrapped.timestep)
             env.unwrapped.render()
-            #pdb()
+            if flag_debug:
+                import robosuite.utils.visualize as vis
+                color = 'purple'
+                vis.save_rgbd_img(obs['pixel']['camera0'], color)
+                pcd = vis.get_pcd(obs['pixel']['camera0'], self.obs_spec['camera_mat'], self.obs_spec['camera_pos'], self.obs_spec['camera_f'], color)
+                vis.save_pcd(pcd)
+                pdb()
 
             total_reward += reward
             self.post_action(obs, action, obs_next, reward, done, info)

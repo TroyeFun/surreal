@@ -145,21 +145,20 @@ class PPOModel(nnx.Module):
                                            self.model_config.cnn_feature_dim)
 
         if self.if_pcd_input:
-            self.pix2pcd = Pix2PCD(self.obs_spec['camera_mat'], 
-                                  self.obs_spec['camera_pos'],
-                                  self.obs_spec['camera_f'],
-                                  self.obs_spec['image'],
+            self.pix2pcd = Pix2PCD(self.obs_spec['env_info']['camera_mat'], 
+                                  self.obs_spec['env_info']['camera_pos'],
+                                  self.obs_spec['env_info']['camera_f'],
+                                  self.obs_spec['pixel']['camera0'],
                                   use_cuda)
             self.pcnn_stem = PCNNStemNetwork(self.model_config.pcnn_feature_dim)
             if use_cuda:
-                device = torch.device('cuda')
-                self.pcnn = self.pcnn.to(device)
+                self.pcnn = self.pcnn.cuda()
 
         # optional LSTM stem feature extractor
         self.rnn_stem = None
         if self.rnn_config.if_rnn_policy:
             rnn_insize = self.low_dim + (self.model_config.cnn_feature_dim if self.if_pixel_input else 0) + \
-                    (self.model.pcnn_feature_dim if self.if_pcd_input else 0)
+                    (self.model_config.pcnn_feature_dim if self.if_pcd_input else 0)
             self.rnn_stem = nn.LSTM(rnn_insize,
                                     self.rnn_config.rnn_hidden,
                                     self.rnn_config.rnn_layer,
@@ -170,7 +169,7 @@ class PPOModel(nnx.Module):
 
         # computing final feature dimension for leaf actor/critic network
         input_size = self.low_dim + (self.model_config.cnn_feature_dim if self.if_pixel_input else 0) + \
-                (self.model.pcnn_feature_dim if self.if_pcd_input else 0)
+                (self.model_config.pcnn_feature_dim if self.if_pcd_input else 0)
         input_size = self.rnn_config.rnn_hidden if self.rnn_config.if_rnn_policy else input_size
 
         self.actor = PPO_ActorNetwork(input_size, 
@@ -302,7 +301,7 @@ class PPOModel(nnx.Module):
             obs_list.append(obs_pixel)
 
         if self.if_pcd_input:
-            obs_pcd = self.pix2pcd(obs['pixel']['camera0'], obs['target_color']) 
+            obs_pcd = self.pix2pcd(obs['pixel']['camera0'], obs['env_info']['target_color']) 
             obs_pcd = self.pcnn_stem(obs_pcd)
             obs_list.append(obs_pcd)
 
@@ -340,7 +339,7 @@ class PPOModel(nnx.Module):
             obs_list.append(obs_pixel)
 
         if self.if_pcd_input:
-            obs_pcd = self.pix2pcd(obs['pixel']['camera0'])  #TODO
+            obs_pcd = self.pix2pcd(obs['pixel']['camera0'], obs['env_info']['target_color']) 
             obs_pcd = self.pcnn_stem(obs_pcd)
             obs_list.append(obs_pcd)
             
@@ -377,7 +376,7 @@ class PPOModel(nnx.Module):
             obs_list.append(obs_pixel)
 
         if self.if_pcd_input:
-            obs_pcd = process_pcd(obs['pixel']['camera0'])  #TODO
+            obs_pcd = self.pix2pcd(obs['pixel']['camera0'], obs['env_info']['target_color']) 
             obs_pcd = self.pcnn_stem(obs_pcd)
             obs_list.append(obs_pcd)
 
