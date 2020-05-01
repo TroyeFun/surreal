@@ -13,6 +13,7 @@ from surreal.session import ConfigError
 from .base import Agent
 import os
 
+from ipdb import set_trace as pdb
 
 class PPOAgent(Agent):
     '''
@@ -94,7 +95,7 @@ class PPOAgent(Agent):
                               torch.zeros(self.rnn_config.rnn_layer,
                                           1,  # batch_size is 1
                                           self.rnn_config.rnn_hidden).detach())
-
+            
             self.model = PPOModel(
                 obs_spec=self.obs_spec,
                 action_dim=self.action_dim,
@@ -130,6 +131,9 @@ class PPOAgent(Agent):
         with tx.device_scope(self.gpu_ids):
             obs_tensor = {}
             for mod in obs.keys():
+                if mod == 'env_info':
+                    obs_tensor[mod] = obs[mod]
+                    continue
                 obs_tensor[mod] = {}
                 for k in obs[mod].keys():
                     obs_tensor[mod][k] = torch.tensor(obs[mod][k], dtype=torch.float32).unsqueeze(0)

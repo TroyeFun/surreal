@@ -11,6 +11,8 @@ import scipy.spatial.distance as distance
 import cv2
 import torch
 
+from ipdb import set_trace as pdb
+
 
 def save_ply(points, filename, colors=None, normals=None):
     vertex = np.array([tuple(p) for p in points], dtype=[('x', 'f4'), ('y', 'f4'), ('z', 'f4')])
@@ -170,35 +172,36 @@ def get_random_pcd(num_points, range=(-1,1)):
     pcd = torch.rand((num_points, 3)) * (range[1]-range[0]) + range[0]
     return pcd
 
+from robosuite.utils.visualize import hsv_range
 
 class Pix2PCD:
 
     def __init__(self, camera_mat, camera_pos, camera_f, image_shape, use_cuda=True, num_points=128):
         """
-        camera_mat: 3x3 np.array  -- spec['camera_mat']
-        cmaera_pos: 3x np.array   -- spec['camera_pos']
-        camera_f: float           -- spec['camera_f']
-        image_shape: [h, w, c] np.array    -- spec['image']
+        camera_mat: 3x3 np.array  -- spec['env_info']['camera_mat']
+        cmaera_pos: 3x np.array   -- spec['env_info']['camera_pos']
+        camera_f: float           -- spec['env_info']['camera_f']
+        image_shape: [c, h, w] list    -- spec['pixel']['camera0']
 
         """
-        self.camera_mat = torch.from_numpy(camera_mat).view(3,3)   # rotation matrix
-        self.camera_pos = torch.from_numpy(camera_pos).view(3,1)
+        self.camera_mat = torch.tensor(camera_mat, dtype=torch.float32).view(3,3)   # rotation matrix
+        self.camera_pos = torch.tensor(camera_pos, dtype=torch.float32).view(3,1)   # translation vector
         self.camera_f = camera_f
         self.use_cuda = use_cuda
         self.num_points = num_points
 
         # calculate (x, y) in pixel coordinate
-        w, h = image_shape[:1]
+        h, w = image_shape[1:]
         self.x_pix = torch.arange(w) - (w - 1)/2
         self.x_pix = self.x_pix.view(1, -1).repeat(h, 1)
         self.y_pix = torch.arange(h) - (h - 1)/2
         self.y_pix = self.y_pix.view(-1, 1).repeat(1, w)
-        self.hsv_range = {  # [lower, upper]
-            'blue':   [[115,150,150],[125,255,255]],  # rgba [0, 0, 3, 1]
-            'green':  [[55 ,150,150],[65 ,255,255]],  # rgba [0, 3, 0, 1]
-            'red':    [[0  ,150,150],[10 ,255,255]],  # rgba [3, 0, 0, 1]
-            'yellow': [[25 ,150,150],[35 ,255,255]],  # rgba [3, 3, 0, 1]
-        }
+        #self.hsv_range = {  # [lower, upper]  for rgb image uint8 (not for float32 image)
+        #    'blue':   [[115,150,150],[125,255,255]],  # rgba [0, 0, 3, 1]
+        #    'green':  [[55 ,150,150],[65 ,255,255]],  # rgba [0, 3, 0, 1]
+        #    'red':    [[0  ,150,150],[10 ,255,255]],  # rgba [3, 0, 0, 1]
+        #    'yellow': [[25 ,150,150],[35 ,255,255]],  # rgba [3, 3, 0, 1]
+        #}
 
         if use_cuda:
             self.camera_mat = self.camera_mat.cuda()
@@ -211,7 +214,7 @@ class Pix2PCD:
         rgbd_img_batch: N x 4 x H x W, torch.Tensor
         color: 'blue', 'yellow', 'red', 'green'
         """
-        lower, upper = np.array(self.hsv_range[color])
+        lower, upper = np.array(hsv_range[color])
         print('debug: rgbd_img_batch shape: ', rgbd_img_batch.shape)
 
         color_imgs, depth_imgs = rgbd_img_batch[:, :3, :, :], rgbd_img_batch[:, 3, :, :]
@@ -224,7 +227,7 @@ class Pix2PCD:
         pcds = []
         for idx in range(n):
             depth_img = depth_imgs[idx]
-            hsv_img = cv2.cvtColor(color_imgs_np[idx], cv2.COLOR_RGB2HSV)
+            hsv_img = cv2.cvtColor(color_imgs_np[idx].astype('uint8'), cv2.COLOR_RGB2HSV)
             mask = cv2.inRange(hsv_img, lower, upper)
             mask = torch.from_numpy(mask)
             if self.use_cuda:

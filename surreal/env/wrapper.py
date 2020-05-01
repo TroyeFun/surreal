@@ -9,6 +9,8 @@ import sys
 import gym
 import math
 
+from ipdb import set_trace as pdb
+
 
 class SpecFormat(U.StringEnum):
     SURREAL_CLASSIC = ()
@@ -228,6 +230,7 @@ class RobosuiteWrapper(Wrapper):
     def _add_modality(self, obs, verbose=False):
         pixel_modality = collections.OrderedDict()
         flat_modality = collections.OrderedDict()
+        env_info = collections.OrderedDict()
         for key in obs:
             if key == 'image' and 'camera0' in self._input_list['pixel']:
                 pixel_modality['camera0'] = obs[key]
@@ -235,6 +238,8 @@ class RobosuiteWrapper(Wrapper):
                 pixel_modality[key] = obs[key]
             elif key in self._input_list['low_dim']:
                 flat_modality[key] = obs[key]
+            elif key == 'env_info':
+                env_info = obs[key]
             elif verbose:
                 print('Mujoco: skipping observation key:', key)
         obs = collections.OrderedDict()
@@ -242,6 +247,7 @@ class RobosuiteWrapper(Wrapper):
             obs['pixel'] = pixel_modality
         if len(flat_modality) > 0:
             obs['low_dim'] = flat_modality
+        obs['env_info'] = env_info
         return obs
 
     def _step(self, action):
@@ -256,8 +262,9 @@ class RobosuiteWrapper(Wrapper):
         if self.use_depth:
             obs['image'] = np.concatenate((obs['image'], np.expand_dims(obs['depth'], 2)), 2)
 
+        obs['env_info'] = collections.OrderedDict()
         if self.need_target_color:
-            obs['target_color'] = self.env.target_color
+            obs['env_info']['target_color'] = self.env.target_color
 
         return self._add_modality(obs), reward, done, info
 
@@ -267,6 +274,10 @@ class RobosuiteWrapper(Wrapper):
         if self.use_depth:
             obs['image'] = np.concatenate((obs['image'], np.expand_dims(obs['depth'], 2)), 2)
         
+        obs['env_info'] = collections.OrderedDict()
+        if self.need_target_color:
+            obs['env_info']['target_color'] = self.env.target_color
+
         return self._add_modality(obs), {}
 
     def _close(self):
@@ -285,13 +296,14 @@ class RobosuiteWrapper(Wrapper):
         for k in spec:
             spec[k] = tuple(np.array(spec[k]).shape)
 
+        spec['env_info'] = collections.OrderedDict()
         if self.use_camera_info:
             model = self.env.sim.model
             cam_id = model.camera_name2id(self.env.camera_name)
-            spec['camera_mat'] = model.cam_mat0[cam_id]
-            spec['camera_pos'] = model.cam_pos0[cam_id]
+            spec['env_info']['camera_mat'] = model.cam_mat0[cam_id].copy().reshape(3,3)
+            spec['env_info']['camera_pos'] = model.cam_pos0[cam_id].copy()
             fovy = model.cam_fovy[cam_id]
-            spec['camera_f'] = 0.5 * self.env.camera_height / math.tan(fovy * math.pi / 360)
+            spec['env_info']['camera_f'] = 0.5 * self.env.camera_height / math.tan(fovy * math.pi / 360)
 
         return self._add_modality(spec, verbose=True)
 
@@ -337,7 +349,7 @@ class ObservationConcatenationWrapper(Wrapper):
         spec = self.env.observation_spec()
         flat_observation_dim = 0
         if 'low_dim' in spec:
-            spec['low_dim_raw'] = spec['low_dim']
+            spec['env_info']['low_dim_raw'] = spec['low_dim']
             for k, shape in spec['low_dim'].items():
                 assert len(shape) == 1
                 flat_observation_dim += shape[0]
@@ -491,6 +503,7 @@ class FilterWrapper(Wrapper):
     '''
     Given the inputs allowed in env_config.observation, reject any inputs
     not specified in the config.
+    Useless for robosuite env
     '''
     def __init__(self, env, env_config):
         super().__init__(env)
@@ -499,6 +512,9 @@ class FilterWrapper(Wrapper):
     def _filtered_obs(self, obs, verbose=False):
         filtered = collections.OrderedDict()
         for modality in obs:
+            if modality == 'env_info':
+                filtered[modality] = obs[modality]
+                continue
             if modality in self._allowed_items:
                 modality_spec = collections.OrderedDict()
                 for key in obs[modality]:

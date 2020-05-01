@@ -98,10 +98,13 @@ PPO_DEFAULT_LEARNER_CONFIG.extend(BASE_LEARNER_CONFIG)
 PPO_DEFAULT_ENV_CONFIG = Config({
     'env_name': '',
     'action_repeat': 1,
+
     'pixel_input': False,   # Attention !
+    #'camera_size': (256, 256),  # (h, w), (84, 84) if not set
+    'pcd_input': False,  # point cloud
+
     'use_grayscale': False,
     'use_depth': True,
-    'pcd_input': False,  # point cloud
     'render': False,
     'frame_stacks': 1,
     'sleep_time': 0,

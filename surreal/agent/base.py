@@ -16,7 +16,7 @@ from surreal.env import (
     EvalTensorplexMonitor,
     VideoWrapper
 )
-import ipdb
+from ipdb import set_trace as pdb
 
 AGENT_MODES = ['training', 'eval_deterministic', 'eval_stochastic', 
     'eval_deterministic_local', 'eval_stochastic_local']
@@ -251,12 +251,27 @@ class Agent(object, metaclass=U.AutoInitializeMeta):
         self.pre_episode()
         obs, info = env.reset()
         total_reward = 0.0
+
+        flag_debug = False
         while True:
             if self.render:
-                env.unwrapped.render() # TODO: figure out why it needs to be unwrapped
+                env.unwrapped.render() # TODO: figure out why it needs to be unwrapped: 
+                                       # env.render() return env.sim.render() i.e. image from camera (see wrapper.RobosuiteWrapper._render)
+                                       # env.unwrapped.render() create a on-screen simulator
             self.pre_action(obs)
             action = self.act(obs)
             obs_next, reward, done, info = env.step(action)
+            
+            if flag_debug:
+                #print('debug rendering', env.unwrapped.timestep)
+                env.unwrapped.render()
+                import robosuite.utils.visualize as vis
+                color = 'yellow'
+                pdb()
+                vis.save_rgbd_img(obs['pixel']['camera0'], color)
+                pcd = vis.get_pcd(obs['pixel']['camera0'], self.obs_spec['env_info']['camera_mat'], self.obs_spec['env_info']['camera_pos'], self.obs_spec['env_info']['camera_f'], color)
+                vis.save_pcd(pcd)
+
             total_reward += reward
             self.post_action(obs, action, obs_next, reward, done, info)
             obs = obs_next

@@ -66,7 +66,7 @@ class XConv(nn.Module):
             out_channels = C_out,
             kernel_size = (1, K),
             depth_multiplier = depth_multiplier
-        )).cuda()
+        ))
         
     def forward(self, x : Tuple[UFloatTensor,            # (N, P, dims)
                                 UFloatTensor,            # (N, P, K, dims)

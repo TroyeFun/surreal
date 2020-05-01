@@ -74,6 +74,7 @@ def make_robosuite(env_name, env_config):
     import robosuite
     pixel_input = env_config.pixel_input or env_config.pcd_input
     camera_depth = env_config.use_depth or env_config.pcd_input
+    camera_height, camera_width = env_config.get('camera_size', (84, 84))
 
     env = robosuite.make(
         env_name,
@@ -81,8 +82,8 @@ def make_robosuite(env_name, env_config):
         ignore_done=True,
         use_camera_obs=pixel_input,
         has_offscreen_renderer=pixel_input,
-        camera_height=84,
-        camera_width=84,
+        camera_height=camera_height,
+        camera_width=camera_width,
         render_collision_mesh=False,
         render_visual_mesh=True,
         camera_name='agentview',
@@ -102,6 +103,7 @@ def make_robosuite(env_name, env_config):
             env = FrameStackWrapper(env, env_config)
     env_config.action_spec = env.action_spec()
     env_config.obs_spec = env.observation_spec()
+
     return env, env_config
 
 
