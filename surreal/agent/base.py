@@ -265,11 +265,11 @@ class Agent(object, metaclass=U.AutoInitializeMeta):
             env.unwrapped.render()
             if flag_debug:
                 import robosuite.utils.visualize as vis
-                color = 'purple'
-                vis.save_rgbd_img(obs['pixel']['camera0'], color)
-                pcd = vis.get_pcd(obs['pixel']['camera0'], self.obs_spec['camera_mat'], self.obs_spec['camera_pos'], self.obs_spec['camera_f'], color)
-                vis.save_pcd(pcd)
+                color = 'yellow'
                 pdb()
+                vis.save_rgbd_img(obs['pixel']['camera0'], color)
+                pcd = vis.get_pcd(obs['pixel']['camera0'], self.obs_spec['env_info']['camera_mat'], self.obs_spec['env_info']['camera_pos'], self.obs_spec['env_info']['camera_f'], color)
+                vis.save_pcd(pcd)
 
             total_reward += reward
             self.post_action(obs, action, obs_next, reward, done, info)

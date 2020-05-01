@@ -11,6 +11,8 @@ import scipy.spatial.distance as distance
 import cv2
 import torch
 
+from ipdb import set_trace as pdb
+
 
 def save_ply(points, filename, colors=None, normals=None):
     vertex = np.array([tuple(p) for p in points], dtype=[('x', 'f4'), ('y', 'f4'), ('z', 'f4')])
@@ -182,8 +184,8 @@ class Pix2PCD:
         image_shape: [c, h, w] list    -- spec['pixel']['camera0']
 
         """
-        self.camera_mat = torch.from_numpy(camera_mat).view(3,3)   # rotation matrix
-        self.camera_pos = torch.from_numpy(camera_pos).view(3,1)
+        self.camera_mat = torch.tensor(camera_mat, dtype=torch.float32).view(3,3)   # rotation matrix
+        self.camera_pos = torch.tensor(camera_pos, dtype=torch.float32).view(3,1)   # translation vector
         self.camera_f = camera_f
         self.use_cuda = use_cuda
         self.num_points = num_points

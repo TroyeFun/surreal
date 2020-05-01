@@ -103,6 +103,8 @@ def make_robosuite(env_name, env_config):
             env = FrameStackWrapper(env, env_config)
     env_config.action_spec = env.action_spec()
     env_config.obs_spec = env.observation_spec()
+
+    print('debug obs_spec', env_config.obs_spec)
     
     return env, env_config
 

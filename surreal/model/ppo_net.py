@@ -13,6 +13,8 @@ from .pointcnn.utils.data_utils import Pix2PCD
 
 import itertools
 
+from ipdb import set_trace as pdb
+
 class DiagGauss(object):
     '''
         Class that encapsulates Diagonal Gaussian Probability distribution

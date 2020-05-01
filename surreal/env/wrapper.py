@@ -275,6 +275,10 @@ class RobosuiteWrapper(Wrapper):
         if self.use_depth:
             obs['image'] = np.concatenate((obs['image'], np.expand_dims(obs['depth'], 2)), 2)
         
+        obs['env_info'] = collections.OrderedDict()
+        if self.need_target_color:
+            obs['env_info']['target_color'] = self.env.target_color
+
         return self._add_modality(obs), {}
 
     def _close(self):
@@ -297,8 +301,8 @@ class RobosuiteWrapper(Wrapper):
         if self.use_camera_info:
             model = self.env.sim.model
             cam_id = model.camera_name2id(self.env.camera_name)
-            spec['env_info']['camera_mat'] = model.cam_mat0[cam_id].reshape(3,3)
-            spec['env_info']['camera_pos'] = model.cam_pos0[cam_id]
+            spec['env_info']['camera_mat'] = model.cam_mat0[cam_id].copy().reshape(3,3)
+            spec['env_info']['camera_pos'] = model.cam_pos0[cam_id].copy()
             fovy = model.cam_fovy[cam_id]
             spec['env_info']['camera_f'] = 0.5 * self.env.camera_height / math.tan(fovy * math.pi / 360)
 
