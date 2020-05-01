@@ -124,7 +124,7 @@ DDPG_DEFAULT_ENV_CONFIG = Config({
     # Debug only: agent will sleep for this number of seconds between actions
     'sleep_time': 0.0,
     # If an episode reaches this number of steps, the state will be considered terminal
-    'limit_episode_length': 0, # 0 means no limit
+    'limit_episode_length': 200, # 0 means no limit
     'video': {
         'record_video': True,
         'save_folder': None,
@@ -137,7 +137,8 @@ DDPG_DEFAULT_ENV_CONFIG = Config({
         'pixel':['camera0', 'depth'],
         # if using ObservationConcatWrapper, all low_dim inputs will be concatenated together into a single input
         # named 'flat_inputs'
-        'low_dim':['position', 'velocity', 'proprio', 'robot-state', 'cube_pos', 'cube_quat', 'gripper_to_cube', 'low-dim'],
+        #'low_dim':['position', 'velocity', 'proprio', 'robot-state', 'cube_pos', 'cube_quat', 'gripper_to_cube', 'low-dim'],
+        'low_dim':['robot-state', 'object-state'],
     },
 })
 

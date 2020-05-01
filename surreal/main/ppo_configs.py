@@ -98,7 +98,7 @@ PPO_DEFAULT_LEARNER_CONFIG.extend(BASE_LEARNER_CONFIG)
 PPO_DEFAULT_ENV_CONFIG = Config({
     'env_name': '',
     'action_repeat': 1,
-    'pixel_input': True,   # Attention !
+    'pixel_input': False,   # Attention !
     'use_grayscale': False,
     'use_depth': True,
     'pcd_input': False,  # point cloud
@@ -134,7 +134,7 @@ PPO_DEFAULT_ENV_CONFIG = Config({
         'curriculum_length': 50,
         'history_length': 20,
     },
-    'limit_episode_length': 200,
+    'limit_episode_length': 2000, # 200, for lifting
     'stochastic_eval': True,
 })
 PPO_DEFAULT_ENV_CONFIG.extend(BASE_ENV_CONFIG)

@@ -192,6 +192,8 @@ class MultistepAggregatorWithInfo():
         '''
         batched_obs = {}
         for modality in self.obs_spec.keys():
+            if modality == 'env_info':
+                continue
             batched_obs[modality] = {}
             for key in self.obs_spec[modality].keys():
                 batched_obs[modality][key] = []
