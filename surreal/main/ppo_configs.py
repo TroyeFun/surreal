@@ -28,9 +28,9 @@ PPO_DEFAULT_LEARNER_CONFIG = Config({
         # 'experience': 'ExpSenderWrapperMultiStepMovingWindowWithInfo',
         'use_z_filter': True,
         'use_r_filter': False,
-        'gamma': .995,
-        'n_step': 25,  # 10 for without RNN
-        'stride': 20,  # 10 for without RNN
+        'gamma': .99,
+        'n_step': 5,  # 10 for without RNN
+        'stride': 3,  # 10 for without RNN
         'network': {
             'lr_actor': 1e-4,
             'lr_critic': 1e-4,
@@ -67,7 +67,7 @@ PPO_DEFAULT_LEARNER_CONFIG = Config({
             'epoch_policy': 10,
             'epoch_baseline': 10,
             'adjust_threshold': (0.5, 2.0),  # threshold to magnify clip epsilon
-            'kl_target': 0.015,  # target KL divergence between before and after
+            'kl_target': 0.02,  # target KL divergence between before and after
         },
         'adapt_consts': {
             'kl_cutoff_coeff': 250,  # penalty coeff when kl large
@@ -85,7 +85,7 @@ PPO_DEFAULT_LEARNER_CONFIG = Config({
     'replay': {
         # 'replay_class': 'FIFOReplay',
         'batch_size': 64,
-        'memory_size': 96,
+        'memory_size': 512, #96,
         'sampling_start_size': 64,
         'replay_shards': 1,
     },
@@ -97,7 +97,7 @@ PPO_DEFAULT_LEARNER_CONFIG.extend(BASE_LEARNER_CONFIG)
 
 PPO_DEFAULT_ENV_CONFIG = Config({
     'env_name': '',
-    'action_repeat': 1,
+    'action_repeat': 10,
 
     'pixel_input': False,   # Attention !
     #'camera_size': (256, 256),  # (h, w), (84, 84) if not set
@@ -137,7 +137,7 @@ PPO_DEFAULT_ENV_CONFIG = Config({
         'curriculum_length': 50,
         'history_length': 20,
     },
-    'limit_episode_length': 2000, # 200, for lifting
+    'limit_episode_length': 800//10, # 200, for lifting
     'stochastic_eval': True,
 })
 PPO_DEFAULT_ENV_CONFIG.extend(BASE_ENV_CONFIG)
