@@ -51,6 +51,7 @@ if __name__ == "__main__":
     parser.add_argument("--record", action='store_true',)
     parser.add_argument("--record-every", type=int,)
     parser.add_argument("--record-folder", type=str,)
+    parser.add_argument("--episode-limit", type=int, default=0)
     args = parser.parse_args()
 
     if args.record and args.record_folder is None:
@@ -84,4 +85,4 @@ if __name__ == "__main__":
     agent = restore_agent(algo, learner_config, env_config, session_config, render)
     agent.model.load_state_dict(model)
 
-    agent.main()
+    agent.main(args.episode_limit)

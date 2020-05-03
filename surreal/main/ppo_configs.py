@@ -180,6 +180,12 @@ PPO_DEFAULT_SESSION_CONFIG = Config({
 })
 PPO_DEFAULT_SESSION_CONFIG.extend(LOCAL_SESSION_CONFIG)
 
+PPO_BLOCK_LIFTING_ENV_CONFIG = Config({
+    'action_repeat': 10,
+    'limit_episode_length': 200, 
+})
+PPO_BLOCK_LIFTING_ENV_CONFIG.extend(PPO_DEFAULT_ENV_CONFIG)
+
 
 class PPOLauncher(SurrealDefaultLauncher):
     def __init__(self):

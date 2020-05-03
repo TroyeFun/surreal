@@ -209,14 +209,14 @@ DDPG_BLOCK_LIFTING_ENV_CONFIG = Config({
     'env_name': '_str_',
     'num_agents': '_int_',
     # If true, DDPG will expect an image at obs['pixel']['camera0']
-    'pixel_input': True,
+    'pixel_input': False,
     'pcd_input': False,
     'use_grayscale': False,
     # Stacks previous image frames together to provide history information
     'frame_stacks': 3,
     # Each action will be played this number of times. The reward of the consecutive actions will be the the reward
     # of the last action in the sequence
-    'action_repeat': 10,
+    'action_repeat': 1,
     # If an episode reaches this number of steps, the state will be considered terminal
     'limit_episode_length': 200, # 0 means no limit
     # observation: if using FilterWrapper, any input not listed will be thrown out.
@@ -236,9 +236,11 @@ class DDPGLauncher(SurrealDefaultLauncher):
         learner_class = DDPGLearner
         agent_class = DDPGAgent
         replay_class = UniformReplay
-        learner_config = DDPG_DEFAULT_LEARNER_CONFIG
-        env_config = DDPG_DEFAULT_ENV_CONFIG
+        #learner_config = DDPG_DEFAULT_LEARNER_CONFIG
+        #env_config = DDPG_DEFAULT_ENV_CONFIG
         session_config = DDPG_DEFAULT_SESSION_CONFIG
+        learner_config = DDPG_BLOCK_LIFTING_LEARNER_CONFIG
+        env_config = DDPG_BLOCK_LIFTING_ENV_CONFIG
         super().__init__(agent_class,
                          learner_class,
                          replay_class,
