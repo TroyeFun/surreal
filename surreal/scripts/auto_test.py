@@ -8,14 +8,13 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--folder', type=str, required=True)
 parser.add_argument('--start', type=int, default=0)
 parser.add_argument('--step', type=int, default=100000)  # for ddpg
-parser.add_argument('--record-every', type=int, default=2)  # for ddpg
+parser.add_argument('--record-every', type=int, default=1)  # for ddpg
 parser.add_argument('--num-record', type=int, default=2)  # for ddpg
 args = parser.parse_args()
 
 if args.start == 0:
     args.start = args.step
 ckpt = args.start
-assert args.record_every >= 2, "Won't stop if record_every is 1."
 while True:
     if not os.path.exists(os.path.join(args.folder, 'checkpoint', 'learner.{}.ckpt'.format(ckpt))):
         time.sleep(600) # 10min

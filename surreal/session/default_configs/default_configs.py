@@ -1,4 +1,5 @@
 from ..config import extend_config
+import os
 
 # ======================== Agent-Learner side ========================
 BASE_LEARNER_CONFIG = {
@@ -217,7 +218,7 @@ LOCAL_SESSION_CONFIG = {
         'learner': {
             'restore_target': 0,
             'mode': 'history',
-            'keep_history': 8,
+            'keep_history': 20,
             'keep_best': 0, # TODO don't keep best unless we solve the learner score issue
             'periodic': 100000, # Save every 100000 steps
             'min_interval': 15 * 60, # No checkpoint less than 15 min apart.
@@ -225,7 +226,7 @@ LOCAL_SESSION_CONFIG = {
         'agent': {
             'restore_target': 0,
             'mode': 'history',
-            'keep_history': 8,
+            'keep_history': 20,
             'keep_best': 0, # TODO don't keep best unless we solve the learner score issue
             'periodic': 100,
         },
@@ -258,3 +259,36 @@ KUBE_SESSION_CONFIG = {
 }
 
 KUBE_SESSION_CONFIG = extend_config(KUBE_SESSION_CONFIG, LOCAL_SESSION_CONFIG)
+
+
+print('warning: setting port according to CUDA_VISIBLE_DEVICES')
+cuda_device = int(os.environ.get('CUDA_VISIBLE_DEVICES', '0').split(',')[0])
+
+SESSION_CONFIG_EXT = {
+    'folder': '_str_',
+    'replay': {
+        'collector_frontend_port': 7001 + 1000 * cuda_device,
+        'collector_backend_port': 7002 + 1000 * cuda_device,
+        'sampler_frontend_port': 7003 + 1000 * cuda_device,
+        'sampler_backend_port': 7004 + 1000 * cuda_device,
+    },
+    'sender': {
+        'flush_iteration': '_int_',
+    },
+    'ps': {
+        'parameter_serving_frontend_port': 7005 + 1000 * cuda_device,
+        'parameter_serving_backend_port': 7006 + 1000 * cuda_device,
+        'publish_port': 7007 + 1000 * cuda_device
+    },
+    'tensorplex': {
+        'port': 7008 + 1000 * cuda_device,
+        'tensorboard_port': 6006 + 1000 * cuda_device,
+    },
+    'loggerplex': {
+        'port': 7009 + 1000 * cuda_device,
+    },
+    'learner': {
+        'prefetch_port': 7010 + 1000 * cuda_device,
+    },
+}
+LOCAL_SESSION_CONFIG = extend_config(SESSION_CONFIG_EXT, LOCAL_SESSION_CONFIG)

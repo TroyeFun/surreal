@@ -3,5 +3,8 @@ from .config import *
 from .tracker import *
 from tensorplex import TensorplexClient, LoggerplexClient
 
-#from .default_configs.default_configs import *
-from .default_configs.default_configs2 import *
+import os
+
+
+from .default_configs.default_configs import *
+

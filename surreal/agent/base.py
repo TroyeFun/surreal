@@ -232,6 +232,8 @@ class Agent(object, metaclass=U.AutoInitializeMeta):
         if episode_limit > 0:
             for _ in range(episode_limit):
                 self.main_loop()
+            if isinstance(self.env, VideoWrapper) and self.env.is_recording:
+                self.env.stop_record()
         else:
             while True:
                 self.main_loop()
