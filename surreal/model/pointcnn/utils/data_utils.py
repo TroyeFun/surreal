@@ -193,9 +193,9 @@ class Pix2PCD:
         # calculate (x, y) in pixel coordinate
         h, w = image_shape[1:]
         self.x_pix = torch.arange(w) - (w - 1)/2
-        self.x_pix = self.x_pix.view(1, -1).repeat(h, 1)
+        self.x_pix = self.x_pix.view(1, -1).repeat(h, 1).float()
         self.y_pix = torch.arange(h) - (h - 1)/2
-        self.y_pix = self.y_pix.view(-1, 1).repeat(1, w)
+        self.y_pix = self.y_pix.view(-1, 1).repeat(1, w).float()
         #self.hsv_range = {  # [lower, upper]  for rgb image uint8 (not for float32 image)
         #    'blue':   [[115,150,150],[125,255,255]],  # rgba [0, 0, 3, 1]
         #    'green':  [[55 ,150,150],[65 ,255,255]],  # rgba [0, 3, 0, 1]
@@ -249,6 +249,7 @@ class Pix2PCD:
                 pcd = sample_pcd(pcd, self.num_points)
             else:
                 """no points detected"""
+                print('Debug: pix2pcd warning: no point detected')
                 pcd = get_random_pcd(self.num_points)
 
             pcds.append(pcd)

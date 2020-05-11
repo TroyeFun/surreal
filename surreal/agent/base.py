@@ -280,6 +280,8 @@ class Agent(object, metaclass=U.AutoInitializeMeta):
                 vis.save_rgbd_img(obs['pixel']['camera0'], color)
                 pcd = vis.get_pcd(obs['pixel']['camera0'], self.obs_spec['env_info']['camera_mat'], self.obs_spec['env_info']['camera_pos'], self.obs_spec['env_info']['camera_f'], color)
                 vis.save_pcd(pcd)
+            #if obs['low_dim']['flat_inputs'][-8] >= 0.9:
+            #    print('debug: warning')
 
             total_reward += reward
             self.post_action(obs, action, obs_next, reward, done, info)
@@ -292,7 +294,20 @@ class Agent(object, metaclass=U.AutoInitializeMeta):
             print('Episode {} reward {}'.format(self.current_episode, total_reward))
             return
 
-        if self.current_episode % 20 == 0:
+        if self.current_episode % 20 == 1:
+            #import numpy as np
+            #if getattr(self.env.unwrapped, 'object_type', None):
+            #    self.log.info('\nDebug: object_type: ', self.env.unwrapped.object_type)
+            #self.log.info('Debug: object_state', obs['low_dim']['flat_inputs'][-10:])
+            #self.log.info('Debug: reward', reward)
+            #env = self.env.unwrapped
+            #cube_pos = env.sim.data.body_xpos[env.cube_body_id]
+            #gripper_site_pos = env.sim.data.site_xpos[env.eef_site_id]
+            #dist = np.linalg.norm(gripper_site_pos - cube_pos)
+            #reaching_reward = 1 - np.tanh(10.0 * dist)
+            #self.log.info('Debug: [ dist, r_reward]', dist, reaching_reward)
+            #self.log.info('Debug: object size', self.env.unwrapped.mujoco_objects['cube'].size)
+
             self.log.info('Episode {} reward {}'
                           .format(self.current_episode,
                                   total_reward))

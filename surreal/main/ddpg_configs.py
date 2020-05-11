@@ -213,7 +213,7 @@ DDPG_BLOCK_LIFTING_ENV_CONFIG = Config({
     'num_agents': '_int_',
 
     # If true, DDPG will expect an image at obs['pixel']['camera0']
-    'pixel_input': True,
+    'pixel_input': False,
     #'camera_size': (256, 256),  # (h, w), (84, 84) if not set
     'pcd_input': False,  # point cloud
     

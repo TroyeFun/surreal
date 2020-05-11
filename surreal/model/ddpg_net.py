@@ -65,7 +65,7 @@ class DDPGModel(nnx.Module):
                                   use_cuda)
             self.pcnn_stem = PCNNStemNetwork(self.model_config.pcnn_feature_dim)
             if use_cuda:
-                self.pcnn = self.pcnn.cuda()
+                self.pcnn_stem = self.pcnn_stem.cuda()
             concatenated_perception_dim += self.model_config.pcnn_feature_dim
         
 
@@ -108,7 +108,7 @@ class DDPGModel(nnx.Module):
             if self.if_pixel_input:
                 self.cnn_stem.soft_update(net.cnn_stem, tau)
             if self.if_pcd_input:
-                self.pcnn_stem.soft_update(net.pcnn_stem, tau)
+                self.pcnn_stem.soft_update(net.pcnn_stem, tau)  #TODO
         elif update_type == 'hard':
             if not self.critic_only:
                 self.actor.load_state_dict(net.actor.state_dict())
