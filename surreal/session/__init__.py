@@ -6,5 +6,5 @@ from tensorplex import TensorplexClient, LoggerplexClient
 import os
 
 
-from .default_configs.default_configs import *
+from .default_configs.default_configs1 import *
 

@@ -1,4 +1,5 @@
 from ..config import extend_config
+import os
 
 # ======================== Agent-Learner side ========================
 BASE_LEARNER_CONFIG = {
@@ -258,3 +259,36 @@ KUBE_SESSION_CONFIG = {
 }
 
 KUBE_SESSION_CONFIG = extend_config(KUBE_SESSION_CONFIG, LOCAL_SESSION_CONFIG)
+
+
+print('warning: setting port according to CUDA_VISIBLE_DEVICES')
+cuda_device = int(os.environ.get('CUDA_VISIBLE_DEVICES', '0').split(',')[0])
+
+SESSION_CONFIG_EXT = {
+    'folder': '_str_',
+    'replay': {
+        'collector_frontend_port': 8001 + 1000 * cuda_device,
+        'collector_backend_port': 8002 + 1000 * cuda_device,
+        'sampler_frontend_port': 8003 + 1000 * cuda_device,
+        'sampler_backend_port': 8004 + 1000 * cuda_device,
+    },
+    'sender': {
+        'flush_iteration': '_int_',
+    },
+    'ps': {
+        'parameter_serving_frontend_port': 8005 + 1000 * cuda_device,
+        'parameter_serving_backend_port': 8006 + 1000 * cuda_device,
+        'publish_port': 8007 + 1000 * cuda_device
+    },
+    'tensorplex': {
+        'port': 8008 + 1000 * cuda_device,
+        'tensorboard_port': 8011 + 1000 * cuda_device,
+    },
+    'loggerplex': {
+        'port': 8009 + 1000 * cuda_device,
+    },
+    'learner': {
+        'prefetch_port': 8010 + 1000 * cuda_device,
+    },
+}
+LOCAL_SESSION_CONFIG = extend_config(SESSION_CONFIG_EXT, LOCAL_SESSION_CONFIG)

@@ -16,6 +16,8 @@ import surreal.utils as U
 import faulthandler
 faulthandler.enable()
 
+from ipdb import set_trace as pdb
+
 
 class Launcher:
     """
@@ -385,10 +387,11 @@ class SurrealDefaultLauncher(Launcher):
             Launches a tensorboard process
         """
         folder = os.path.join(self.session_config.folder, 'tensorboard')
-        tensorplex_config = self.session_config.tensorplex
+
+        port = os.environ['SYMPH_TENSORBOARD_PORT']
         cmd = ['tensorboard',
                '--logdir', folder,
-               '--port', str(tensorplex_config.tensorboard_port)]
+               '--port', port]
         subprocess.call(cmd)
 
     def run_tensorplex(self):

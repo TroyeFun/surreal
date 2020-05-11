@@ -8,6 +8,7 @@ from surreal.model.ddpg_net import DDPGModel
 from surreal.session import BASE_LEARNER_CONFIG, ConfigError
 import surreal.utils as U
 import torchx as tx
+from ipdb import set_trace as pdb
 
 
 class DDPGLearner(Learner):

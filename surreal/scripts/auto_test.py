@@ -5,11 +5,11 @@ import os
 import time
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--folder', type=str, required=True)
-parser.add_argument('--start', type=int, default=0)
+parser.add_argument('-f', '--folder', type=str, required=True)
+parser.add_argument('-s', '--start', type=int, default=0)
 parser.add_argument('--step', type=int, default=100000)  # for ddpg
-parser.add_argument('--record-every', type=int, default=1)  # for ddpg
-parser.add_argument('--num-record', type=int, default=2)  # for ddpg
+parser.add_argument('--record-every', type=int, default=1)  
+parser.add_argument('-n', '--num-record', type=int, default=2)  
 args = parser.parse_args()
 
 if args.start == 0:
