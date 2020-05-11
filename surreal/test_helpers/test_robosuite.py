@@ -8,9 +8,9 @@ if __name__ == '__main__':
     print('BEGIN DDPG-Gym TEST')
     integration_test('/tmp/surreal',
                      os.path.join(os.path.dirname(__file__),
-                                  '../main/ppo_configs.py'),
+                                  '../main/ddpg_configs.py'),
                      PPOLauncher(),
-                     'robosuite:SawyerPickPlaceTarget')
+                     'robosuite:SawyerPickPlaceMultiTaskTarget')
     print('PASSED')
     self = psutil.Process()
     self.kill()

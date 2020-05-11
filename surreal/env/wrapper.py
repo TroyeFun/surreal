@@ -258,6 +258,8 @@ class RobosuiteWrapper(Wrapper):
             if done:
                 break
         reward = np.mean(rewards)
+        
+        pdb()
 
         if self.use_depth:
             obs['image'] = np.concatenate((obs['image'], np.expand_dims(obs['depth'], 2)), 2)
@@ -335,6 +337,7 @@ class ObservationConcatenationWrapper(Wrapper):
 
     def _step(self, action):
         obs, reward, done, info = self.env.step(action)
+        pdb()
         return self._flatten_obs(obs), reward, done, info
 
     def _reset(self):
@@ -527,6 +530,7 @@ class FilterWrapper(Wrapper):
 
     def _step(self, action):
         obs_next, reward, done, info = self.env.step(action)
+        pdb()
         return self._filtered_obs(obs_next), reward, done, info
 
     def _reset(self):

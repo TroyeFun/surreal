@@ -108,9 +108,12 @@ DDPG_DEFAULT_ENV_CONFIG = Config({
     'render': False,
 
     'use_demonstration': False,
+
     # If true, DDPG will expect an image at obs['pixel']['camera0']
     'pixel_input': False,
-    'pcd_input': False,
+    #'camera_size': (256, 256),  # (h, w), (84, 84) if not set
+    'pcd_input': False,  # point cloud, if true, ddpg will expect an rgbd image at obs['pixel']['camera0'] and convert it to pcd
+
     'use_grayscale': False,
     # Stacks previous image frames together to provide history information
     'frame_stacks': 3,
@@ -209,7 +212,8 @@ DDPG_BLOCK_LIFTING_ENV_CONFIG = Config({
     'num_agents': '_int_',
     # If true, DDPG will expect an image at obs['pixel']['camera0']
     'pixel_input': True,
-    'pcd_input': False,
+    #'camera_size': (256, 256),  # (h, w), (84, 84) if not set
+    'pcd_input': False,  # point cloud
     'use_grayscale': False,
     # Stacks previous image frames together to provide history information
     'frame_stacks': 3,
