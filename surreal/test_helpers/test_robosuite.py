@@ -8,7 +8,6 @@ from surreal.test_helpers import integration_test
 if __name__ == '__main__':
     print('BEGIN DDPG-Gym TEST')
     launcher = DDPGLauncher()
-    launcher.env_config.render = True
     integration_test('/tmp/surreal',
                      os.path.join(os.path.dirname(__file__),
                                   '../main/ddpg_configs.py'),

@@ -303,7 +303,7 @@ class PPOModel(nnx.Module):
             obs_list.append(obs_pixel)
 
         if self.if_pcd_input:
-            obs_pcd = self.pix2pcd(obs['pixel']['camera0'], obs['env_info']['target_color']) 
+            obs_pcd = self.pix2pcd(obs['pixel']['camera0'], obs['env_info']['target_color'].item()) 
             obs_pcd = self.pcnn_stem(obs_pcd)
             obs_list.append(obs_pcd)
 
@@ -341,7 +341,7 @@ class PPOModel(nnx.Module):
             obs_list.append(obs_pixel)
 
         if self.if_pcd_input:
-            obs_pcd = self.pix2pcd(obs['pixel']['camera0'], obs['env_info']['target_color']) 
+            obs_pcd = self.pix2pcd(obs['pixel']['camera0'], obs['env_info']['target_color'].item()) 
             obs_pcd = self.pcnn_stem(obs_pcd)
             obs_list.append(obs_pcd)
             
@@ -378,7 +378,7 @@ class PPOModel(nnx.Module):
             obs_list.append(obs_pixel)
 
         if self.if_pcd_input:
-            obs_pcd = self.pix2pcd(obs['pixel']['camera0'], obs['env_info']['target_color']) 
+            obs_pcd = self.pix2pcd(obs['pixel']['camera0'], obs['env_info']['target_color'].item()) 
             obs_pcd = self.pcnn_stem(obs_pcd)
             obs_list.append(obs_pcd)
 

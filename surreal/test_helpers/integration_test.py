@@ -102,7 +102,7 @@ def integration_test(temp_path,
         print(module + '=' * 20 + 'done')
     print('Supplementary components launched')
 
-    if True: # render
+    if False: # render
         launcher.env_config.render = True
         launcher.env_config.sleep_time = 0.0
     launcher.setup(args)

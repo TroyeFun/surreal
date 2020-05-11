@@ -276,9 +276,10 @@ class DDPGLauncher(SurrealDefaultLauncher):
         learner_class = DDPGLearner
         agent_class = DDPGAgent
         replay_class = UniformReplay
+        session_config = DDPG_DEFAULT_SESSION_CONFIG
+
         #learner_config = DDPG_DEFAULT_LEARNER_CONFIG
         #env_config = DDPG_DEFAULT_ENV_CONFIG
-        session_config = DDPG_DEFAULT_SESSION_CONFIG
         #learner_config = DDPG_BLOCK_LIFTING_LEARNER_CONFIG
         #env_config = DDPG_BLOCK_LIFTING_ENV_CONFIG
         learner_config = DDPG_PICK_PLACE_LEARNER_CONFIG

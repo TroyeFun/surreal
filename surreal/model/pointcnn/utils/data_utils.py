@@ -172,6 +172,7 @@ def get_random_pcd(num_points, range=(-1,1)):
     pcd = torch.rand((num_points, 3)) * (range[1]-range[0]) + range[0]
     return pcd
 
+import robosuite.utils.visualize as vis
 from robosuite.utils.visualize import hsv_range
 
 class Pix2PCD:
@@ -209,11 +210,12 @@ class Pix2PCD:
             self.x_pix = self.x_pix.cuda()
             self.y_pix = self.y_pix.cuda()
 
-    def __call__(self, rgbd_img_batch, color):
+    def __call__(self, rgbd_img_batch, color_id):
         """would this part be time-comsuming?
         rgbd_img_batch: N x 4 x H x W, torch.Tensor
         color: 'blue', 'yellow', 'red', 'green'
         """
+        color = vis.id2color[color_id]
         lower, upper = np.array(hsv_range[color])
         #print('debug: rgbd_img_batch shape: ', rgbd_img_batch.shape)
 

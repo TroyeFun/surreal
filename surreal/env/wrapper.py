@@ -265,7 +265,7 @@ class RobosuiteWrapper(Wrapper):
 
         obs['env_info'] = collections.OrderedDict()
         if self.need_target_color:
-            obs['env_info']['target_color'] = self.env.target_color
+            obs['env_info']['target_color'] = np.array(self.env.target_color)
 
         return self._add_modality(obs), reward, done, info
 
@@ -277,7 +277,7 @@ class RobosuiteWrapper(Wrapper):
         
         obs['env_info'] = collections.OrderedDict()
         if self.need_target_color:
-            obs['env_info']['target_color'] = self.env.target_color
+            obs['env_info']['target_color'] = np.array(self.env.target_color)
 
         return self._add_modality(obs), {}
 

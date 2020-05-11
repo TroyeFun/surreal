@@ -133,7 +133,7 @@ class DDPGModel(nnx.Module):
             concatenated_inputs.append(cnn_updated)
 
         if self.if_pcd_input:
-            obs_pcd = self.pix2pcd(obs['pixel']['camera0'], obs['env_info']['target_color']) 
+            obs_pcd = self.pix2pcd(obs['pixel']['camera0'], obs['env_info']['target_color'].item()) 
             obs_pcd = self.pcnn_stem(obs_pcd)
             concatenated_inputs.append(obs_pcd)
 
