@@ -62,7 +62,7 @@ class DDPGLearner(Learner):
         self.discount_factor = self.learner_config.algo.gamma
         self.n_step = self.learner_config.algo.n_step
         #self.is_pixel_input = self.env_config.pixel_input
-        self.use_layernorm = self.learner_config.model.use_layernorm
+        #self.use_layernorm = self.learner_config.model.use_layernorm
         self.use_double_critic = self.learner_config.algo.network.use_double_critic
         self.use_action_regularization = self.learner_config.algo.network.use_action_regularization
 
@@ -101,13 +101,7 @@ class DDPGLearner(Learner):
             self.model = DDPGModel(
                 obs_spec=self.env_config.obs_spec,
                 action_dim=self.action_dim,
-                use_layernorm=self.use_layernorm,
-                actor_fc_hidden_sizes=self.learner_config.model.actor_fc_hidden_sizes,
-                critic_fc_hidden_sizes=self.learner_config.model.critic_fc_hidden_sizes,
-                conv_out_channels=self.learner_config.model.conv_spec.out_channels,
-                conv_kernel_sizes=self.learner_config.model.conv_spec.kernel_sizes,
-                conv_strides=self.learner_config.model.conv_spec.strides,
-                conv_hidden_dim=self.learner_config.model.conv_spec.hidden_output_dim,
+                model_config=self.learner_config.model,
                 use_cuda=(not self.gpu_ids == 'cpu'),
                 if_pixel_input=self.env_config.pixel_input,
                 if_pcd_input=self.env_config.pcd_input,
@@ -116,13 +110,7 @@ class DDPGLearner(Learner):
             self.model_target = DDPGModel(
                 obs_spec=self.env_config.obs_spec,
                 action_dim=self.action_dim,
-                use_layernorm=self.use_layernorm,
-                actor_fc_hidden_sizes=self.learner_config.model.actor_fc_hidden_sizes,
-                critic_fc_hidden_sizes=self.learner_config.model.critic_fc_hidden_sizes,
-                conv_out_channels=self.learner_config.model.conv_spec.out_channels,
-                conv_kernel_sizes=self.learner_config.model.conv_spec.kernel_sizes,
-                conv_strides=self.learner_config.model.conv_spec.strides,
-                conv_hidden_dim=self.learner_config.model.conv_spec.hidden_output_dim,
+                model_config=self.learner_config.model,
                 use_cuda=(not self.gpu_ids == 'cpu'),
                 if_pixel_input=self.env_config.pixel_input,
                 if_pcd_input=self.env_config.pcd_input,
@@ -132,13 +120,7 @@ class DDPGLearner(Learner):
                 self.model2 = DDPGModel(
                     obs_spec=self.env_config.obs_spec,
                     action_dim=self.action_dim,
-                    use_layernorm=self.use_layernorm,
-                    actor_fc_hidden_sizes=self.learner_config.model.actor_fc_hidden_sizes,
-                    critic_fc_hidden_sizes=self.learner_config.model.critic_fc_hidden_sizes,
-                    conv_out_channels=self.learner_config.model.conv_spec.out_channels,
-                    conv_kernel_sizes=self.learner_config.model.conv_spec.kernel_sizes,
-                    conv_strides=self.learner_config.model.conv_spec.strides,
-                    conv_hidden_dim=self.learner_config.model.conv_spec.hidden_output_dim,
+                    model_config=self.learner_config.model,
                     critic_only=True,
                     use_cuda=(not self.gpu_ids == 'cpu'),
                     if_pixel_input=self.env_config.pixel_input,
@@ -148,13 +130,7 @@ class DDPGLearner(Learner):
                 self.model_target2 = DDPGModel(
                     obs_spec=self.env_config.obs_spec,
                     action_dim=self.action_dim,
-                    use_layernorm=self.use_layernorm,
-                    actor_fc_hidden_sizes=self.learner_config.model.actor_fc_hidden_sizes,
-                    critic_fc_hidden_sizes=self.learner_config.model.critic_fc_hidden_sizes,
-                    conv_out_channels=self.learner_config.model.conv_spec.out_channels,
-                    conv_kernel_sizes=self.learner_config.model.conv_spec.kernel_sizes,
-                    conv_strides=self.learner_config.model.conv_spec.strides,
-                    conv_hidden_dim=self.learner_config.model.conv_spec.hidden_output_dim,
+                    model_config=self.learner_config.model,
                     critic_only=True,
                     use_cuda=(not self.gpu_ids == 'cpu'),
                     if_pixel_input=self.env_config.pixel_input,

@@ -112,8 +112,8 @@ DDPG_DEFAULT_ENV_CONFIG = Config({
 
     # If true, DDPG will expect an image at obs['pixel']['camera0']
     'pixel_input': False,
-    'camera_size': (256, 256),  # (h, w), (84, 84) if not set
-    'pcd_input': True,  # point cloud, if true, ddpg will expect an rgbd image at obs['pixel']['camera0'] and convert it to pcd
+    #'camera_size': (256, 256),  # (h, w), (84, 84) if not set
+    'pcd_input': False,  # point cloud, if true, ddpg will expect an rgbd image at obs['pixel']['camera0'] and convert it to pcd
 
     'use_grayscale': False,
     # Stacks previous image frames together to provide history information
@@ -213,7 +213,7 @@ DDPG_BLOCK_LIFTING_ENV_CONFIG = Config({
     'num_agents': '_int_',
 
     # If true, DDPG will expect an image at obs['pixel']['camera0']
-    'pixel_input': False,
+    'pixel_input': True,
     #'camera_size': (256, 256),  # (h, w), (84, 84) if not set
     'pcd_input': False,  # point cloud
     
@@ -228,7 +228,7 @@ DDPG_BLOCK_LIFTING_ENV_CONFIG = Config({
     # observation: if using FilterWrapper, any input not listed will be thrown out.
     # For example, if an observation had a value at obs['pixel']['badkey'], that value will be ignored
     'observation': {
-        'pixel':['camera0', 'depth'],
+        'pixel':['camera0'], #, 'depth'],
         # if using ObservationConcatWrapper, all low_dim inputs will be concatenated together into a single input
         # named 'flat_inputs'
         #'low_dim':['position', 'velocity', 'robot-state', 'proprio', 'cube_pos', 'cube_quat', 'gripper_to_cube', 'low-dim'],
@@ -238,6 +238,38 @@ DDPG_BLOCK_LIFTING_ENV_CONFIG = Config({
 
 DDPG_BLOCK_LIFTING_ENV_CONFIG.extend(DDPG_DEFAULT_ENV_CONFIG)
 
+DDPG_PICK_PLACE_ENV_CONFIG = Config({
+    'env_name': '_str_',
+    'num_agents': '_int_',
+
+    # If true, DDPG will expect an image at obs['pixel']['camera0']
+    'pixel_input': False,
+    'camera_size': (256, 256),  # (h, w), (84, 84) if not set
+    'pcd_input': True,  # point cloud
+    
+    # Stacks previous image frames together to provide history information
+    'frame_stacks': 1,
+    # Each action will be played this number of times. The reward of the consecutive actions will be the the reward
+    # of the last action in the sequence
+    'action_repeat': 1,
+    # If an episode reaches this number of steps, the state will be considered terminal
+    'limit_episode_length': 200, # 0 means no limit
+    # observation: if using FilterWrapper, any input not listed will be thrown out.
+    # For example, if an observation had a value at obs['pixel']['badkey'], that value will be ignored
+    'observation': {
+        'pixel':['camera0'], #, 'depth'],
+        # if using ObservationConcatWrapper, all low_dim inputs will be concatenated together into a single input
+        # named 'flat_inputs'
+        #'low_dim':['position', 'velocity', 'robot-state', 'proprio', 'cube_pos', 'cube_quat', 'gripper_to_cube', 'low-dim'],
+        'low_dim':['robot-state', 'object-state'],
+    },
+})
+
+DDPG_PICK_PLACE_ENV_CONFIG.extend(DDPG_DEFAULT_ENV_CONFIG)
+
+DDPG_PICK_PLACE_LEARNER_CONFIG = DDPG_BLOCK_LIFTING_LEARNER_CONFIG
+
+
 class DDPGLauncher(SurrealDefaultLauncher):
     def __init__(self):
         learner_class = DDPGLearner
@@ -246,8 +278,10 @@ class DDPGLauncher(SurrealDefaultLauncher):
         #learner_config = DDPG_DEFAULT_LEARNER_CONFIG
         #env_config = DDPG_DEFAULT_ENV_CONFIG
         session_config = DDPG_DEFAULT_SESSION_CONFIG
-        learner_config = DDPG_BLOCK_LIFTING_LEARNER_CONFIG
-        env_config = DDPG_BLOCK_LIFTING_ENV_CONFIG
+        #learner_config = DDPG_BLOCK_LIFTING_LEARNER_CONFIG
+        #env_config = DDPG_BLOCK_LIFTING_ENV_CONFIG
+        learner_config = DDPG_PICK_PLACE_LEARNER_CONFIG
+        env_config = DDPG_PICK_PLACE_ENV_CONFIG
         super().__init__(agent_class,
                          learner_class,
                          replay_class,

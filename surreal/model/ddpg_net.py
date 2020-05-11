@@ -11,6 +11,7 @@ from .model_builders import *
 from .z_filter import ZFilter
 from .pointcnn.utils.model import PCNNStemNetwork
 from .pointcnn.utils.data_utils import Pix2PCD
+from ipdb import set_trace as pdb
 
 class DDPGModel(nnx.Module):
 
@@ -32,12 +33,12 @@ class DDPGModel(nnx.Module):
         self.critic_only = critic_only
 
         use_layernorm = model_config.use_layernorm
-        actor_fc_hidden_sizes = model_config.actor_fc_hidden_sizes,
-        critic_fc_hidden_sizes = model_config.critic_fc_hidden_sizes,
-        conv_out_channels = model_config.conv_spec.out_channels,
-        conv_kernel_sizes = model_config.conv_spec.kernel_sizes,
-        conv_strides = model_config.conv_spec.strides,
-        conv_hidden_dim = model_config.conv_spec.hidden_output_dim,
+        actor_fc_hidden_sizes = model_config.actor_fc_hidden_sizes
+        critic_fc_hidden_sizes = model_config.critic_fc_hidden_sizes
+        conv_out_channels = model_config.conv_spec.out_channels
+        conv_kernel_sizes = model_config.conv_spec.kernel_sizes
+        conv_strides = model_config.conv_spec.strides
+        conv_hidden_dim = model_config.conv_spec.hidden_output_dim
 
         # hyperparameters
         self.if_pixel_input = if_pixel_input
@@ -66,6 +67,7 @@ class DDPGModel(nnx.Module):
             if use_cuda:
                 self.pcnn = self.pcnn.cuda()
             concatenated_perception_dim += self.model_config.pcnn_feature_dim
+        
 
         if 'low_dim' in obs_spec:
             concatenated_perception_dim += obs_spec['low_dim']['flat_inputs'][0]
