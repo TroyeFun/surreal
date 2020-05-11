@@ -100,7 +100,7 @@ class PPOAgent(Agent):
                 obs_spec=self.obs_spec,
                 action_dim=self.action_dim,
                 model_config=self.learner_config.model,
-                use_cuda=False,
+                use_cuda=(not self.gpu_ids == 'cpu'),
                 init_log_sig=self.init_log_sig,
                 use_z_filter=self.use_z_filter,
                 if_pixel_input=self.env_config.pixel_input,

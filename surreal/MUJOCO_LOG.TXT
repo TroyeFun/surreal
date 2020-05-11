@@ -22,3 +22,18 @@ ERROR: Could not allocate memory
 Wed Apr 22 20:45:49 2020
 ERROR: Could not allocate memory
 
+Wed May  6 12:20:26 2020
+ERROR: Could not allocate memory
+
+Wed May  6 12:22:20 2020
+ERROR: Could not allocate memory
+
+Wed May  6 12:33:06 2020
+ERROR: Could not allocate memory
+
+Thu May  7 14:00:51 2020
+ERROR: Could not allocate memory
+
+Thu May  7 14:07:30 2020
+ERROR: Could not allocate memory
+

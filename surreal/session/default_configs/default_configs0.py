@@ -1,4 +1,5 @@
 from ..config import extend_config
+import os
 
 # ======================== Agent-Learner side ========================
 BASE_LEARNER_CONFIG = {
@@ -153,13 +154,13 @@ LOCAL_SESSION_CONFIG = {
 
     'replay': {
         'collector_frontend_host': 'localhost',  # upstream from agents' pusher
-        'collector_frontend_port': 7001,
+        'collector_frontend_port': 8001,
         'collector_backend_host': 'localhost',  # upstream from agents' pusher
-        'collector_backend_port': 7002,
+        'collector_backend_port': 8002,
         'sampler_frontend_host': 'localhost',  # downstream to Learner request
-        'sampler_frontend_port': 7003,
+        'sampler_frontend_port': 8003,
         'sampler_backend_host': 'localhost',  # downstream to Learner request
-        'sampler_backend_port': 7004,
+        'sampler_backend_port': 8004,
         'max_puller_queue': 10000,  # replay side: pull queue size
         'evict_interval': 0.,  # in seconds
         'tensorboard_display': True,  # display replay stats on Tensorboard
@@ -170,17 +171,17 @@ LOCAL_SESSION_CONFIG = {
     },
     'ps': {
         'parameter_serving_frontend_host': 'localhost',
-        'parameter_serving_frontend_port': 7005,
+        'parameter_serving_frontend_port': 8005,
         'parameter_serving_backend_host': 'localhost',
-        'parameter_serving_backend_port': 7006,
+        'parameter_serving_backend_port': 8006,
         'shards': 2,
         'publish_host': 'localhost',  # upstream from learner
-        'publish_port': 7007
+        'publish_port': 8007
     },
     'tensorplex': {
         'host': 'localhost',
-        'port': 7008,
-        'tensorboard_port': 6006,
+        'port': 8008,
+        'tensorboard_port': 6007,
         'update_schedule': { # TODO: rename this to 'periodic'
             # for TensorplexWrapper:
             'training_env': 20,  # env record every N episodes
@@ -194,7 +195,7 @@ LOCAL_SESSION_CONFIG = {
     },
     'loggerplex': {
         'host': 'localhost',
-        'port': 7009,
+        'port': 8009,
         'enable_local_logger': True,
     },
     'agent': {
@@ -206,7 +207,7 @@ LOCAL_SESSION_CONFIG = {
     'learner': {
         'num_gpus': 0,
         'prefetch_host': 'localhost',
-        'prefetch_port': 7010,
+        'prefetch_port': 8010,
         'prefetch_processes': 2,
         'max_prefetch_queue': 10,  # learner side: max number of batches to prefetch
         'max_preprocess_queue': 2,  # learner side: max number of batches to preprocess
@@ -217,7 +218,7 @@ LOCAL_SESSION_CONFIG = {
         'learner': {
             'restore_target': 0,
             'mode': 'history',
-            'keep_history': 8,
+            'keep_history': 20,
             'keep_best': 0, # TODO don't keep best unless we solve the learner score issue
             'periodic': 100000, # Save every 100000 steps
             'min_interval': 15 * 60, # No checkpoint less than 15 min apart.
@@ -225,7 +226,7 @@ LOCAL_SESSION_CONFIG = {
         'agent': {
             'restore_target': 0,
             'mode': 'history',
-            'keep_history': 8,
+            'keep_history': 20,
             'keep_best': 0, # TODO don't keep best unless we solve the learner score issue
             'periodic': 100,
         },
@@ -258,3 +259,36 @@ KUBE_SESSION_CONFIG = {
 }
 
 KUBE_SESSION_CONFIG = extend_config(KUBE_SESSION_CONFIG, LOCAL_SESSION_CONFIG)
+
+
+print('warning: setting port according to CUDA_VISIBLE_DEVICES')
+cuda_device = int(os.environ.get('CUDA_VISIBLE_DEVICES', '0').split(',')[0])
+
+SESSION_CONFIG_EXT = {
+    'folder': '_str_',
+    'replay': {
+        'collector_frontend_port': 7001 + 1000 * cuda_device,
+        'collector_backend_port': 7002 + 1000 * cuda_device,
+        'sampler_frontend_port': 7003 + 1000 * cuda_device,
+        'sampler_backend_port': 7004 + 1000 * cuda_device,
+    },
+    'sender': {
+        'flush_iteration': '_int_',
+    },
+    'ps': {
+        'parameter_serving_frontend_port': 7005 + 1000 * cuda_device,
+        'parameter_serving_backend_port': 7006 + 1000 * cuda_device,
+        'publish_port': 7007 + 1000 * cuda_device
+    },
+    'tensorplex': {
+        'port': 7008 + 1000 * cuda_device,
+        'tensorboard_port': 7011 + 1000 * cuda_device,
+    },
+    'loggerplex': {
+        'port': 7009 + 1000 * cuda_device,
+    },
+    'learner': {
+        'prefetch_port': 7010 + 1000 * cuda_device,
+    },
+}
+LOCAL_SESSION_CONFIG = extend_config(SESSION_CONFIG_EXT, LOCAL_SESSION_CONFIG)

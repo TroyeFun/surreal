@@ -8,6 +8,7 @@ from surreal.model.ddpg_net import DDPGModel
 from surreal.session import BASE_LEARNER_CONFIG, ConfigError
 import surreal.utils as U
 import torchx as tx
+from ipdb import set_trace as pdb
 
 
 class DDPGLearner(Learner):
@@ -60,7 +61,7 @@ class DDPGLearner(Learner):
         self.batch_size = self.learner_config.replay.batch_size
         self.discount_factor = self.learner_config.algo.gamma
         self.n_step = self.learner_config.algo.n_step
-        self.is_pixel_input = self.env_config.pixel_input
+        #self.is_pixel_input = self.env_config.pixel_input
         self.use_layernorm = self.learner_config.model.use_layernorm
         self.use_double_critic = self.learner_config.algo.network.use_double_critic
         self.use_action_regularization = self.learner_config.algo.network.use_action_regularization
@@ -107,6 +108,9 @@ class DDPGLearner(Learner):
                 conv_kernel_sizes=self.learner_config.model.conv_spec.kernel_sizes,
                 conv_strides=self.learner_config.model.conv_spec.strides,
                 conv_hidden_dim=self.learner_config.model.conv_spec.hidden_output_dim,
+                use_cuda=(not self.gpu_ids == 'cpu'),
+                if_pixel_input=self.env_config.pixel_input,
+                if_pcd_input=self.env_config.pcd_input,
             )
 
             self.model_target = DDPGModel(
@@ -119,6 +123,9 @@ class DDPGLearner(Learner):
                 conv_kernel_sizes=self.learner_config.model.conv_spec.kernel_sizes,
                 conv_strides=self.learner_config.model.conv_spec.strides,
                 conv_hidden_dim=self.learner_config.model.conv_spec.hidden_output_dim,
+                use_cuda=(not self.gpu_ids == 'cpu'),
+                if_pixel_input=self.env_config.pixel_input,
+                if_pcd_input=self.env_config.pcd_input,
             )
 
             if self.use_double_critic:
@@ -133,6 +140,9 @@ class DDPGLearner(Learner):
                     conv_strides=self.learner_config.model.conv_spec.strides,
                     conv_hidden_dim=self.learner_config.model.conv_spec.hidden_output_dim,
                     critic_only=True,
+                    use_cuda=(not self.gpu_ids == 'cpu'),
+                    if_pixel_input=self.env_config.pixel_input,
+                    if_pcd_input=self.env_config.pcd_input,
                 )
 
                 self.model_target2 = DDPGModel(
@@ -146,6 +156,9 @@ class DDPGLearner(Learner):
                     conv_strides=self.learner_config.model.conv_spec.strides,
                     conv_hidden_dim=self.learner_config.model.conv_spec.hidden_output_dim,
                     critic_only=True,
+                    use_cuda=(not self.gpu_ids == 'cpu'),
+                    if_pixel_input=self.env_config.pixel_input,
+                    if_pcd_input=self.env_config.pcd_input,
                 )
 
             self.critic_criterion = nn.MSELoss()
@@ -305,9 +318,10 @@ class DDPGLearner(Learner):
 
             # critic update
             with self.critic_update_time.time():
-                self.model.critic.zero_grad()
-                if self.is_pixel_input:
-                    self.model.perception.zero_grad()
+                #self.model.critic.zero_grad()
+                #if self.is_pixel_input:
+                #    self.model.perception.zero_grad()
+                self.model.clear_critic_grad()
                 critic_loss = self.critic_criterion(y_policy, y)        
                 critic_loss.backward()
                 if self.clip_critic_gradient:
@@ -315,9 +329,10 @@ class DDPGLearner(Learner):
                 self.critic_optim.step()
 
                 if self.use_double_critic:
-                    self.model2.critic.zero_grad()
-                    if self.is_pixel_input:
-                        self.model2.perception.zero_grad()
+                    #self.model2.critic.zero_grad()
+                    #if self.is_pixel_input:
+                    #    self.model2.perception.zero_grad()
+                    self.model2.clear_critic_grad()
                     critic_loss = self.critic_criterion(y_policy2, y)
                     critic_loss.backward()
                     if self.clip_critic_gradient:
@@ -326,7 +341,8 @@ class DDPGLearner(Learner):
 
             # actor update
             with self.actor_update_time.time():
-                self.model.actor.zero_grad()
+                #self.model.actor.zero_grad()
+                self.model.clear_actor_grad()
                 actor_loss = -self.model.forward_critic(
                     perception.detach(),
                     self.model.forward_actor(perception.detach())
@@ -412,25 +428,15 @@ class DDPGLearner(Learner):
         current model every target_update_interval steps.
         '''
         if self.target_update_type == 'soft':
-            self.model_target.actor.soft_update(self.model.actor, self.target_update_tau)
-            self.model_target.critic.soft_update(self.model.critic, self.target_update_tau)
+            self.model_target.update_target_params(self.model, 'soft', self.target_update_tau)
             if self.use_double_critic:
-                self.model_target2.critic.soft_update(self.model2.critic, self.target_update_tau)
-                if self.is_pixel_input:
-                    self.model_target2.perception.soft_update(self.model2.perception, self.target_update_tau)
-            if self.is_pixel_input:
-                self.model_target.perception.soft_update(self.model.perception, self.target_update_tau)
+                self.model_target2.update_target_params(self.model2, 'soft', self.target_update_tau)
         elif self.target_update_type == 'hard':
             self.target_update_counter += 1
             if self.target_update_counter % self.target_update_interval == 0:
-                self.model_target.actor.hard_update(self.model.actor)
-                self.model_target.critic.hard_update(self.model.critic)
+                self.model_target.update_target_params(self.model, 'hard')
                 if self.use_double_critic:
-                    self.model_target2.critic.hard_update(self.model2.critic)
-                    if self.is_pixel_input:
-                        self.model_target2.perception.hard_update(self.model2.perception)
-                if self.is_pixel_input:
-                    self.model_target.perception.hard_update(self.model.perception)
+                    self.model_target2.update_target_params(self.model2, 'hard')
 
     # override
     def _prefetcher_preprocess(self, batch):

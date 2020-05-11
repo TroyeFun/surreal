@@ -29,6 +29,7 @@ DDPG_DEFAULT_LEARNER_CONFIG = Config({
             # After final convolution, reshapes output to flat tensor and feed through mlp with output of this size
             'hidden_output_dim': 200,
         },
+        'pcnn_feature_dim': 32,
     },
     'algo': {
         'gamma': .99,
@@ -38,14 +39,14 @@ DDPG_DEFAULT_LEARNER_CONFIG = Config({
         'stride': 1,
         'network': {
             'lr_actor': 1e-4,
-            'lr_critic': 1e-3,
+            'lr_critic': 1e-4,
             'clip_actor_gradient': True,
             'actor_gradient_value_clip': 1.,
             'clip_critic_gradient': False,
             'critic_gradient_value_clip': 5.,
             # Weight regularization
-            'actor_regularization': 0.0,
-            'critic_regularization': 0.0,
+            'actor_regularization': 1e-4,
+            'critic_regularization': 1e-4,
             # beta version: see https://arxiv.org/pdf/1802.09477.pdf and
             # https://github.com/sfujim/TD3/blob/master/TD3.py
             # for action regularization and double critic algorithm details
@@ -76,11 +77,11 @@ DDPG_DEFAULT_LEARNER_CONFIG = Config({
             'param_noise_target_stddev': 0.005,
 
             # Vanilla noise: applies gaussian noise on every action
-            'noise_type': 'normal',
-            'max_sigma': 1.0,
+            #'noise_type': 'normal',
+            'max_sigma': 2.0,
 
             # Or, use Ornstein-Uhlenbeck noise instead of gaussian
-            #'noise_type': 'ou_noise',
+            'noise_type': 'ou_noise',
             'theta': 0.15,
             'dt': 1e-3,
         },
@@ -111,15 +112,15 @@ DDPG_DEFAULT_ENV_CONFIG = Config({
 
     # If true, DDPG will expect an image at obs['pixel']['camera0']
     'pixel_input': False,
-    #'camera_size': (256, 256),  # (h, w), (84, 84) if not set
-    'pcd_input': False,  # point cloud, if true, ddpg will expect an rgbd image at obs['pixel']['camera0'] and convert it to pcd
+    'camera_size': (256, 256),  # (h, w), (84, 84) if not set
+    'pcd_input': True,  # point cloud, if true, ddpg will expect an rgbd image at obs['pixel']['camera0'] and convert it to pcd
 
     'use_grayscale': False,
     # Stacks previous image frames together to provide history information
     'frame_stacks': 3,
     # Each action will be played this number of times. The reward of the consecutive actions will be the the reward
     # of the last action in the sequence
-    'action_repeat': 1,
+    'action_repeat': 1, #10,
     # If false, the agent will send an image will be a list of frames to the replay.  When the learner receives an
     # observation, it will concatenate the frames into a single tensor.  This allows the replay to optimize memory
     # usage so that identical frames aren't duplicated in memory
@@ -127,7 +128,7 @@ DDPG_DEFAULT_ENV_CONFIG = Config({
     # Debug only: agent will sleep for this number of seconds between actions
     'sleep_time': 0.0,
     # If an episode reaches this number of steps, the state will be considered terminal
-    'limit_episode_length': 200, # 0 means no limit
+    'limit_episode_length': 800, # 0 means no limit
     'video': {
         'record_video': True,
         'save_folder': None,
@@ -210,16 +211,18 @@ DDPG_BLOCK_LIFTING_LEARNER_CONFIG.extend(DDPG_DEFAULT_LEARNER_CONFIG)
 DDPG_BLOCK_LIFTING_ENV_CONFIG = Config({
     'env_name': '_str_',
     'num_agents': '_int_',
+
     # If true, DDPG will expect an image at obs['pixel']['camera0']
-    'pixel_input': True,
+    'pixel_input': False,
     #'camera_size': (256, 256),  # (h, w), (84, 84) if not set
     'pcd_input': False,  # point cloud
+    
     'use_grayscale': False,
     # Stacks previous image frames together to provide history information
     'frame_stacks': 3,
     # Each action will be played this number of times. The reward of the consecutive actions will be the the reward
     # of the last action in the sequence
-    'action_repeat': 10,
+    'action_repeat': 1,
     # If an episode reaches this number of steps, the state will be considered terminal
     'limit_episode_length': 200, # 0 means no limit
     # observation: if using FilterWrapper, any input not listed will be thrown out.
@@ -228,7 +231,8 @@ DDPG_BLOCK_LIFTING_ENV_CONFIG = Config({
         'pixel':['camera0', 'depth'],
         # if using ObservationConcatWrapper, all low_dim inputs will be concatenated together into a single input
         # named 'flat_inputs'
-        'low_dim':['position', 'velocity', 'robot-state', 'proprio', 'cube_pos', 'cube_quat', 'gripper_to_cube', 'low-dim'],
+        #'low_dim':['position', 'velocity', 'robot-state', 'proprio', 'cube_pos', 'cube_quat', 'gripper_to_cube', 'low-dim'],
+        'low_dim':['robot-state', 'object-state'],
     },
 })
 
@@ -239,9 +243,11 @@ class DDPGLauncher(SurrealDefaultLauncher):
         learner_class = DDPGLearner
         agent_class = DDPGAgent
         replay_class = UniformReplay
-        learner_config = DDPG_DEFAULT_LEARNER_CONFIG
-        env_config = DDPG_DEFAULT_ENV_CONFIG
+        #learner_config = DDPG_DEFAULT_LEARNER_CONFIG
+        #env_config = DDPG_DEFAULT_ENV_CONFIG
         session_config = DDPG_DEFAULT_SESSION_CONFIG
+        learner_config = DDPG_BLOCK_LIFTING_LEARNER_CONFIG
+        env_config = DDPG_BLOCK_LIFTING_ENV_CONFIG
         super().__init__(agent_class,
                          learner_class,
                          replay_class,

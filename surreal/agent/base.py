@@ -222,15 +222,21 @@ class Agent(object, metaclass=U.AutoInitializeMeta):
     # Main loops.
     # Customize this to fully customize the agent process
     #######
-    def main(self):
+    def main(self, episode_limit=0):
         """
             Default Main loop
         Args:
             @env: the environment to run agent on
         """
         self.main_setup()
-        while True:
-            self.main_loop()
+        if episode_limit > 0:
+            for _ in range(episode_limit):
+                self.main_loop()
+            if isinstance(self.env, VideoWrapper) and self.env.is_recording:
+                self.env.stop_record()
+        else:
+            while True:
+                self.main_loop()
 
     def main_setup(self):
         """
@@ -239,7 +245,10 @@ class Agent(object, metaclass=U.AutoInitializeMeta):
         env = self.get_env()
         env = self.prepare_env(env)
         self.env = env
-        self.log.info('Observation spec:\n' + str(self.env_config.obs_spec))
+        if getattr(self, 'log', None) is not None:
+            self.log.info('Observation spec:\n' + str(self.env_config.obs_spec))
+        else:
+            print('Observation spec:\n' + str(self.env_config.obs_spec))
         if self.agent_mode == "training":
             self.fetch_parameter()
 
