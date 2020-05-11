@@ -249,6 +249,7 @@ DDPG_PICK_PLACE_ENV_CONFIG = Config({
     
     # Stacks previous image frames together to provide history information
     'frame_stacks': 1,
+    'frame_stack_concatenate_on_env': True,
     # Each action will be played this number of times. The reward of the consecutive actions will be the the reward
     # of the last action in the sequence
     'action_repeat': 1,

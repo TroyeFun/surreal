@@ -247,6 +247,7 @@ class RobosuiteWrapper(Wrapper):
             obs['pixel'] = pixel_modality
         if len(flat_modality) > 0:
             obs['low_dim'] = flat_modality
+
         obs['env_info'] = env_info
         return obs
 

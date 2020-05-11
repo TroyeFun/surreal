@@ -100,8 +100,8 @@ PPO_DEFAULT_ENV_CONFIG = Config({
     'action_repeat': 10,
 
     'pixel_input': False,   # Attention !
-    #'camera_size': (256, 256),  # (h, w), (84, 84) if not set
-    'pcd_input': False,  # point cloud
+    'camera_size': (256, 256),  # (h, w), (84, 84) if not set
+    'pcd_input': True,  # point cloud
 
     'use_grayscale': False,
     'use_depth': True,

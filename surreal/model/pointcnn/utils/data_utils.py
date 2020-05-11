@@ -160,7 +160,7 @@ def sample_pcd(pcd, num_points):
         for t in range(n_repeat):
             new_pcd = pcd + torch.randn_like(pcd) * scale
             pcds.append(new_pcd)
-        pcd = torch.concatenate(pcds, dim=0)
+        pcd = torch.cat(pcds, dim=0)
 
     # downsample
     idxs = torch.randperm(pcd.shape[0])[:num_points]
@@ -176,7 +176,7 @@ from robosuite.utils.visualize import hsv_range
 
 class Pix2PCD:
 
-    def __init__(self, camera_mat, camera_pos, camera_f, image_shape, use_cuda=True, num_points=128):
+    def __init__(self, camera_mat, camera_pos, camera_f, image_shape, use_cuda, num_points=128):
         """
         camera_mat: 3x3 np.array  -- spec['env_info']['camera_mat']
         cmaera_pos: 3x np.array   -- spec['env_info']['camera_pos']
@@ -215,7 +215,7 @@ class Pix2PCD:
         color: 'blue', 'yellow', 'red', 'green'
         """
         lower, upper = np.array(hsv_range[color])
-        print('debug: rgbd_img_batch shape: ', rgbd_img_batch.shape)
+        #print('debug: rgbd_img_batch shape: ', rgbd_img_batch.shape)
 
         color_imgs, depth_imgs = rgbd_img_batch[:, :3, :, :], rgbd_img_batch[:, 3, :, :]
         color_imgs = color_imgs.permute(0, 2, 3, 1)  # NHWC
@@ -234,7 +234,7 @@ class Pix2PCD:
                 mask = mask.cuda()
             mask_index = mask > 0
     
-            print('debug: {} points detected'.format(mask_index.sum().item()))
+            #print('debug: {} points detected'.format(mask_index.sum().item()))
             if mask_index.sum() > 0:
                 x_pcd = self.x_pix * depth_img / self.camera_f
                 y_pcd = self.y_pix * depth_img / self.camera_f

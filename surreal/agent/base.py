@@ -261,7 +261,7 @@ class Agent(object, metaclass=U.AutoInitializeMeta):
         obs, info = env.reset()
         total_reward = 0.0
 
-        flag_debug = True
+        flag_debug = False
         while True:
             if self.render:
                 env.unwrapped.render() # TODO: figure out why it needs to be unwrapped: 

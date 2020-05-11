@@ -165,8 +165,8 @@ class DDPGAgent(Agent):
             # Convert to pytorch tensor
             obs_tensor = collections.OrderedDict()
             for modality in obs:
-                if mod == 'env_info':
-                    obs_tensor[mod] = obs[mod]
+                if modality == 'env_info':
+                    obs_tensor[modality] = obs[modality]
                     continue
                 modality_dict = collections.OrderedDict()
                 for key in obs[modality]:
