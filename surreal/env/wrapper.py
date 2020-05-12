@@ -375,7 +375,7 @@ class Pix2PCDWrapper(Wrapper):
         if pcd.shape[0] < self.num_points:
             n_repeat = self.num_points // pcd.shape[0]
             min_pt, max_pt = pcd.min(axis=0), pcd.max(axis=0)
-            scale = np.linalg.norm(max_pt - min_pt) / 10
+            scale = np.linalg.norm(max_pt - min_pt) / 50
 
             pcds = [pcd]
             for _ in range(n_repeat):
@@ -398,7 +398,7 @@ class Pix2PCDWrapper(Wrapper):
         pcd = vis.get_pcd(obs['pixel']['camera0'], self.cam_mat, self.cam_pos, self.cam_f,
                          color, self.x_pix, self.y_pix, flip=False, format='hwc')
         if pcd.shape[0] == 0: # no points detected
-            print('debug: warning: no points detected')
+            #print('debug: warning: no points detected')
             pcd = self._get_random_pcd()
         else:
             pcd = self._sample(pcd)
