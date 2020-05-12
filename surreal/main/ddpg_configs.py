@@ -244,7 +244,7 @@ DDPG_PICK_PLACE_ENV_CONFIG = Config({
 
     # If true, DDPG will expect an image at obs['pixel']['camera0']
     'pixel_input': False,
-    'camera_size': (256, 256),  # (h, w), (84, 84) if not set
+    'camera_size': (128, 128),  # (h, w), (84, 84) if not set
     'pcd_input': True,  # point cloud
     
     # Stacks previous image frames together to provide history information
@@ -268,7 +268,15 @@ DDPG_PICK_PLACE_ENV_CONFIG = Config({
 
 DDPG_PICK_PLACE_ENV_CONFIG.extend(DDPG_DEFAULT_ENV_CONFIG)
 
-DDPG_PICK_PLACE_LEARNER_CONFIG = DDPG_BLOCK_LIFTING_LEARNER_CONFIG
+DDPG_PICK_PLACE_LEARNER_CONFIG = Config({
+    'replay': {
+        'batch_size': 512,
+        'memory_size': int(10000), # The total replay size is memory_size * replay_shards
+        'sampling_start_size': 3000,
+        'replay_shards': 1,
+    },
+})
+DDPG_PICK_PLACE_LEARNER_CONFIG.extend(DDPG_BLOCK_LIFTING_LEARNER_CONFIG)
 
 
 class DDPGLauncher(SurrealDefaultLauncher):
@@ -280,10 +288,10 @@ class DDPGLauncher(SurrealDefaultLauncher):
 
         #learner_config = DDPG_DEFAULT_LEARNER_CONFIG
         #env_config = DDPG_DEFAULT_ENV_CONFIG
-        #learner_config = DDPG_BLOCK_LIFTING_LEARNER_CONFIG
-        #env_config = DDPG_BLOCK_LIFTING_ENV_CONFIG
-        learner_config = DDPG_PICK_PLACE_LEARNER_CONFIG
-        env_config = DDPG_PICK_PLACE_ENV_CONFIG
+        learner_config = DDPG_BLOCK_LIFTING_LEARNER_CONFIG
+        env_config = DDPG_BLOCK_LIFTING_ENV_CONFIG
+        #learner_config = DDPG_PICK_PLACE_LEARNER_CONFIG
+        #env_config = DDPG_PICK_PLACE_ENV_CONFIG
         super().__init__(agent_class,
                          learner_class,
                          replay_class,
