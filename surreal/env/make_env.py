@@ -9,7 +9,8 @@ from .wrapper import (
     TransposeWrapper,
     FilterWrapper,
     ObservationConcatenationWrapper,
-    RobosuiteWrapper
+    RobosuiteWrapper,
+    Pix2PCDWrapper
     )
 
 
@@ -95,7 +96,9 @@ def make_robosuite(env_name, env_config):
     env = RobosuiteWrapper(env, env_config)
     env = FilterWrapper(env, env_config)
     env = ObservationConcatenationWrapper(env)
-    if pixel_input:
+    if env_config.pcd_input:
+        env = Pix2PCDWrapper(env, env_config.num_points, env_config.pixel_input)
+    if env_config.pixel_input:
         env = TransposeWrapper(env)
         if env_config.use_grayscale:
             env = GrayscaleWrapper(env)

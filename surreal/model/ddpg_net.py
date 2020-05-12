@@ -58,11 +58,11 @@ class DDPGModel(nnx.Module):
             concatenated_perception_dim += conv_hidden_dim
         
         if self.if_pcd_input:
-            self.pix2pcd = Pix2PCD(self.obs_spec['env_info']['camera_mat'], 
-                                  self.obs_spec['env_info']['camera_pos'],
-                                  self.obs_spec['env_info']['camera_f'],
-                                  self.obs_spec['pixel']['camera0'],
-                                  use_cuda)
+            #self.pix2pcd = Pix2PCD(self.obs_spec['env_info']['camera_mat'], 
+            #                      self.obs_spec['env_info']['camera_pos'],
+            #                      self.obs_spec['env_info']['camera_f'],
+            #                      self.obs_spec['pixel']['camera0'],
+            #                      use_cuda)
             self.pcnn_stem = PCNNStemNetwork(self.model_config.pcnn_feature_dim)
             if use_cuda:
                 self.pcnn_stem = self.pcnn_stem.cuda()
@@ -133,8 +133,8 @@ class DDPGModel(nnx.Module):
             concatenated_inputs.append(cnn_updated)
 
         if self.if_pcd_input:
-            obs_pcd = self.pix2pcd(obs['pixel']['camera0'], obs['env_info']['target_color'].item()) 
-            obs_pcd = self.pcnn_stem(obs_pcd)
+            #obs_pcd = self.pix2pcd(obs['pixel']['camera0'], obs['env_info']['target_color'].item()) 
+            obs_pcd = self.pcnn_stem(obs['pixel']['pcd'])
             concatenated_inputs.append(obs_pcd)
 
         if 'low_dim' in obs:

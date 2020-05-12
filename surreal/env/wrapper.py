@@ -8,6 +8,7 @@ import functools
 import sys
 import gym
 import math
+import robosuite.utils.visualize as vis
 
 from ipdb import set_trace as pdb
 
@@ -265,7 +266,8 @@ class RobosuiteWrapper(Wrapper):
 
         obs['env_info'] = collections.OrderedDict()
         if self.need_target_color:
-            obs['env_info']['target_color'] = np.array(self.env.target_color)
+            #obs['env_info']['target_color'] = np.array(self.env.target_color)
+            obs['env_info']['target_color'] = self.env.target_color
 
         return self._add_modality(obs), reward, done, info
 
@@ -277,7 +279,8 @@ class RobosuiteWrapper(Wrapper):
         
         obs['env_info'] = collections.OrderedDict()
         if self.need_target_color:
-            obs['env_info']['target_color'] = np.array(self.env.target_color)
+            #obs['env_info']['target_color'] = np.array(self.env.target_color)
+            obs['env_info']['target_color'] = self.env.target_color
 
         return self._add_modality(obs), {}
 
@@ -360,6 +363,78 @@ class ObservationConcatenationWrapper(Wrapper):
 
     def action_spec(self):
         return self.env.action_spec()
+
+class Pix2PCDWrapper(Wrapper):
+    def __init__(self, env, num_points=128, pixel_input=False):
+        super().__init__(env)
+        self.num_points = num_points
+        self.pixel_input = pixel_input
+
+    def _sample(self, pcd):
+        # upsample
+        if pcd.shape[0] < self.num_points:
+            n_repeat = self.num_points // pcd.shape[0]
+            min_pt, max_pt = pcd.min(axis=0), pcd.max(axis=0)
+            scale = np.linalg.norm(max_pt - min_pt) / 10
+
+            pcds = [pcd]
+            for _ in range(n_repeat):
+                new_pcd = pcd + np.random.randn(*pcd.shape) * scale
+                pcds.append(new_pcd)
+            pcd = np.concatenate(pcds, axis=0)
+
+        # downsample
+        np.random.shuffle(pcd)
+        pcd = pcd[:self.num_points]
+        return pcd
+
+    def _get_random_pcd(self, range=(-1,1)):
+        pcd = np.random.rand(self.num_points, 3) * (range[1]-range[0]) + range[0]
+        return pcd
+
+    def _pix2pcd(self, obs):
+        #color = vis.id2color[obs['env_info']['target_color'].item()]
+        color = obs['env_info'].pop('target_color')
+        pcd = vis.get_pcd(obs['pixel']['camera0'], self.cam_mat, self.cam_pos, self.cam_f,
+                         color, self.x_pix, self.y_pix, flip=False, format='hwc')
+        if pcd.shape[0] == 0: # no points detected
+            print('debug: warning: no points detected')
+            pcd = self._get_random_pcd()
+        else:
+            pcd = self._sample(pcd)
+        obs['pixel']['pcd'] = pcd
+        return obs
+
+    def _step(self, action):
+        obs, reward, done, info = self.env.step(action)
+        obs = self._pix2pcd(obs)
+        if not self.pixel_input:
+            obs['pixel'].pop('camera0')
+        return obs, reward, done, info
+
+    def _reset(self):
+        obs, info = self.env.reset()
+        obs = self._pix2pcd(obs)
+        if not self.pixel_input:
+            obs['pixel'].pop('camera0')
+        return obs, info
+
+    def observation_spec(self):
+        spec = self.env.observation_spec()
+        h, w, c = spec['pixel']['camera0']
+        self.x_pix = np.arange(w) - (w-1)/2
+        self.x_pix = np.tile(self.x_pix, (h,1))
+        self.y_pix = np.arange(h)[:, np.newaxis] - (h-1)/2
+        self.y_pix = np.tile(self.y_pix, (1,w))
+        self.cam_mat = spec['env_info']['camera_mat']
+        self.cam_pos = spec['env_info']['camera_pos']
+        self.cam_f = spec['env_info']['camera_f']
+        
+        if not self.pixel_input:
+            spec['pixel'].pop('camera0')
+        spec['pixel']['pcd'] = (self.num_points, 3)
+
+        return spec
 
 
 class TransposeWrapper(Wrapper):
