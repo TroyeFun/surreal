@@ -1,9 +1,5 @@
 import argparse 
-import math
-import h5py
 import numpy as np
-import socket
-import importlib
 import matplotlib.pyplot as plt
 import os
 import sys
@@ -14,16 +10,17 @@ sys.path.append(os.path.join(BASE_DIR, 'utils'))
 
 import math
 import random
-import time
 
 import torch
 from torch import nn
 from torch.utils.data import Dataset, DataLoader
 
 
-from .utils.model import RandPointCNN
-from .utils.util_funcs import knn_indices_func
-from .utils.util_layers import Dense
+from utils.model import RandPointCNN
+from utils.util_funcs import knn_indices_func
+from utils.util_layers import Dense
+
+from ipdb import set_trace as pdb
 
 
 random.seed(0)
@@ -55,8 +52,8 @@ BN_DECAY_CLIP = 0.99
 LEARNING_RATE_MIN = 0.00001
         
 prefix = '../../../../pcnn_mj_dataset/pcd_npy/'
-datalist_path = prefix + 'datalist.txt'
-labellist_path = prefix + 'labellist.txt'
+datalist_path = prefix + 'train_datalist.txt'
+labellist_path = prefix + 'train_labellist.txt'
 num_class = int(open(labellist_path, 'r').readline().strip())
 
 class CustomDataset(Dataset):
@@ -77,7 +74,7 @@ class CustomDataset(Dataset):
 
     def __getitem__(self, index):
         data_path = os.path.join(self.prefix, self.data[index])
-        data = np.load(data_path)
+        data = np.load(data_path).astype('float32')
         if self.transform is not None:
             data = self.transform(data)
         return data, self.labels[index]
@@ -116,8 +113,9 @@ class Classifier(nn.Module):
 
 
 print("------Building model-------")
+model = Classifier()
 if args.gpu:
-    model = Classifier().cuda()
+    model = model.cuda()
 print("------Successfully Built model-------")
 
 
