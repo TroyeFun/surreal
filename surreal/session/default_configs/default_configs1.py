@@ -261,8 +261,8 @@ KUBE_SESSION_CONFIG = {
 KUBE_SESSION_CONFIG = extend_config(KUBE_SESSION_CONFIG, LOCAL_SESSION_CONFIG)
 
 
-print('warning: setting port according to CUDA_VISIBLE_DEVICES')
 cuda_device = int(os.environ.get('CUDA_VISIBLE_DEVICES', '0').split(',')[0])
+print('warning: setting port according to CUDA_VISIBLE_DEVICES', cuda_device)
 
 SESSION_CONFIG_EXT = {
     'folder': '_str_',

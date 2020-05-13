@@ -105,7 +105,7 @@ DDPG_DEFAULT_ENV_CONFIG = Config({
     'num_agents': '_int_',
 
     'demonstration': None,
-    'use_depth': False,
+    'use_depth': True,
     'render': False,
 
     'use_demonstration': False,
@@ -243,9 +243,10 @@ DDPG_PICK_PLACE_ENV_CONFIG = Config({
     'num_agents': '_int_',
 
     # If true, DDPG will expect an image at obs['pixel']['camera0']
-    'pixel_input': False,
-    'camera_size': (256, 256),  # (h, w), (84, 84) if not set
-    'pcd_input': True,  # point cloud
+    'pixel_input': True,
+    'use_depth': True,
+    #'camera_size': (256, 256),  # (h, w), (84, 84) if not set
+    'pcd_input': False,  # point cloud
     'num_points': 128,
     
     # Stacks previous image frames together to provide history information
