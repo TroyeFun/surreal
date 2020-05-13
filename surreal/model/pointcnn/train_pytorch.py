@@ -20,7 +20,7 @@ from utils.model import RandPointCNN
 from utils.util_funcs import knn_indices_func
 from utils.util_layers import Dense
 
-from ipdb import set_trace as pdb
+#from ipdb import set_trace as pdb
 
 
 random.seed(0)
@@ -31,6 +31,7 @@ torch.cuda.manual_seed(0)
 parser = argparse.ArgumentParser()
 #parser.add_argument('--gpu', type=int, default=0, help='GPU to use [default: GPU 0]')
 parser.add_argument('--gpu', action='store_true', help='whether to use gpu')
+parser.add_argument('--use-mc', action='store_true', help='whether to use memcache')
 parser.add_argument('--model', default='pointnet_cls',
                     help='Model name: pointnet_cls or pointnet_cls_basic [default: pointnet_cls]')
 parser.add_argument('--log_dir', default='log', help='Log dir [default: log]')
@@ -43,6 +44,10 @@ parser.add_argument('--optimizer', default='adam', help='adam or momentum [defau
 parser.add_argument('--decay_step', type=int, default=200000, help='Decay step for lr decay [default: 200000]')
 parser.add_argument('--decay_rate', type=float, default=0.7, help='Decay rate for lr decay [default: 0.8]')
 args = parser.parse_args()
+
+if args.use_mc:
+    import mc
+    import io
 
 BN_INIT_DECAY = 0.5
 BN_DECAY_DECAY_RATE = 0.5
@@ -68,16 +73,37 @@ class CustomDataset(Dataset):
         for data, label in zip(fdata.readlines(), flabel.readlines()[1:]):
             self.data.append(data.strip())
             self.labels.append(int(label.strip()))
+        self.initialized = False
 
     def __len__(self):
         return len(self.data)
 
     def __getitem__(self, index):
         data_path = os.path.join(self.prefix, self.data[index])
-        data = np.load(data_path).astype('float32')
+
+        if args.use_mc:
+            self._init_memcached()
+            value = mc.pyvector()
+            self.mclient.Get(data_path, value)
+            value_str = mc.ConvertBuffer(value)
+            buff = io.BytesIO(value_str)
+            data = np.load(buff)
+        else:
+            data = np.load(data_path)
+
+        data = data.astype('float32')
         if self.transform is not None:
             data = self.transform(data)
         return data, self.labels[index]
+
+    def _init_memcached(self):
+        if not self.initialized:
+            server_list_config_file = "/mnt/lustre/share/memcached_client/server_list.conf"
+            client_config_file = "/mnt/lustre/share/memcached_client/client.conf"
+            self.mclient = mc.MemcachedClient.GetInstance(server_list_config_file,
+                                                          client_config_file)
+            self.initialized = True
+
 
 # C_in, C_out, D, N_neighbors, dilution, N_rep, r_indices_func, C_lifted = None, mlp_width = 2
 # (a, b, c, d, e) == (C_in, C_out, N_neighbors, dilution, N_rep)
