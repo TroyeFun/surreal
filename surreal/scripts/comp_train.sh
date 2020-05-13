@@ -15,7 +15,8 @@ export CUDA_VISIBLE_DEVICES=0
 
 LOG_logtostderr=-1 GLOG_vmodule=MemcachedClient=-1 MC_COUNT_DISP=1000000 \
 OMPI_MCA_btl_smcuda_use_cuda_ipc=0 OMPI_MCA_mpi_warn_on_fork=0  \
-srun --mpi=pmi2 --job-name tt --partition=VA -n1 --gres=gpu:1 --ntasks-per-node=1  -w SH-IDC1-10-5-37-51 \
-python -u subproc/surreal_subproc.py test1 --algorithm ddpg --num_agents 2 --num_evals 1 --env robosuite:SawyerLift #-- --restore-folder ../../exp/tmux/sppsgl-ppo-na6-nopix-10hz/checkpoint/
-#surreal-tmux create test --algorithm ppo --num_agents 4 --num_evals 0 --env robosuite:SawyerLift #-- --restore-folder ../../exp/tmux/sppsgl-ppo-na6-nopix-10hz/checkpoint/
+srun --mpi=pmi2 --job-name tt --partition=VA -n1 --gres=gpu:2 --ntasks-per-node=2  -w SH-IDC1-10-5-37-51 \
+python -u subproc/surreal_subproc.py sbl-ddpg-na4-pix-fs1-run2 --algorithm ddpg --num_agents 4 --num_evals 1 --env robosuite:SawyerLift #-- --restore-folder ../../exp/tmux/sppsgl-ppo-na6-nopix-10hz/checkpoint/
+#python -u subproc/surreal_subproc.py sppsglmtt-ddpg-na4-nopix-fs1 --algorithm ddpg --num_agents 4 --num_evals 1 --env robosuite:SawyerPickPlaceMultiTaskTarget #-- --restore-folder ../../exp/tmux/sppsgl-ppo-na6-nopix-10hz/checkpoint/
+#python -u subproc/surreal_subproc.py sbl-ddpg-na4-pix-fs1 --algorithm ddpg --num_agents 4 --num_evals 1 --env robosuite:SawyerLift #-- --restore-folder ../../exp/tmux/sppsgl-ppo-na6-nopix-10hz/checkpoint/
 
