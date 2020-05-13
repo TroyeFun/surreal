@@ -2,6 +2,7 @@ import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 import os
+from os.path import exists, join
 import sys
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(BASE_DIR)
@@ -55,6 +56,9 @@ prefix = '../../../../pcnn_mj_dataset/pcd_npy/'
 datalist_path = prefix + 'train_datalist.txt'
 labellist_path = prefix + 'train_labellist.txt'
 num_class = int(open(labellist_path, 'r').readline().strip())
+
+save_dir = '../../../../exp/pcnn/'
+os.makedirs(join(save_dir, 'checkpoint'), exist_ok=True)
 
 class CustomDataset(Dataset):
 
