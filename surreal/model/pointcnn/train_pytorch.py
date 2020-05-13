@@ -35,7 +35,7 @@ parser.add_argument('--model', default='pointnet_cls',
                     help='Model name: pointnet_cls or pointnet_cls_basic [default: pointnet_cls]')
 parser.add_argument('--log_dir', default='log', help='Log dir [default: log]')
 parser.add_argument('--num_point', type=int, default=1024, help='Point Number [256/512/1024/2048] [default: 1024]')
-parser.add_argument('--max_epoch', type=int, default=2, help='Epoch to run [default: 250]')
+parser.add_argument('--max_epoch', type=int, default=100, help='Epoch to run [default: 250]')
 parser.add_argument('--batch_size', type=int, default=32, help='Batch Size during training [default: 32]')
 parser.add_argument('--learning_rate', type=float, default=0.01, help='Initial learning rate [default: 0.001]')
 parser.add_argument('--momentum', type=float, default=0.9, help='Initial learning rate [default: 0.9]')
@@ -136,6 +136,8 @@ for epoch in range(1, args.max_epoch+1):
                                  drop_last=True)
 
     for batch_idx, (data, label) in enumerate(train_dataloader):
+        if args.gpu:
+            data, label = data.cuda(), label.cuda()
         P_sampled = data
         out = model((P_sampled, P_sampled))
         loss = loss_fn(out, label)
