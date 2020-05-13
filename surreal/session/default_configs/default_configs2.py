@@ -261,34 +261,34 @@ KUBE_SESSION_CONFIG = {
 KUBE_SESSION_CONFIG = extend_config(KUBE_SESSION_CONFIG, LOCAL_SESSION_CONFIG)
 
 
-print('warning: setting port according to CUDA_VISIBLE_DEVICES')
 cuda_device = int(os.environ.get('CUDA_VISIBLE_DEVICES', '0').split(',')[0])
+print('warning: setting port according to CUDA_VISIBLE_DEVICES', cuda_device)
 
 SESSION_CONFIG_EXT = {
     'folder': '_str_',
     'replay': {
-        'collector_frontend_port': 9001 + 1000 * cuda_device,
-        'collector_backend_port': 9002 + 1000 * cuda_device,
-        'sampler_frontend_port': 9003 + 1000 * cuda_device,
-        'sampler_backend_port': 9004 + 1000 * cuda_device,
+        'collector_frontend_port': 19001 + 1000 * cuda_device,
+        'collector_backend_port': 19002 + 1000 * cuda_device,
+        'sampler_frontend_port': 19003 + 1000 * cuda_device,
+        'sampler_backend_port': 19004 + 1000 * cuda_device,
     },
     'sender': {
         'flush_iteration': '_int_',
     },
     'ps': {
-        'parameter_serving_frontend_port': 9005 + 1000 * cuda_device,
-        'parameter_serving_backend_port': 9006 + 1000 * cuda_device,
-        'publish_port': 9007 + 1000 * cuda_device
+        'parameter_serving_frontend_port': 19005 + 1000 * cuda_device,
+        'parameter_serving_backend_port': 19006 + 1000 * cuda_device,
+        'publish_port': 19007 + 1000 * cuda_device
     },
     'tensorplex': {
-        'port': 9008 + 1000 * cuda_device,
-        'tensorboard_port': 9011 + 1000 * cuda_device,
+        'port': 19008 + 1000 * cuda_device,
+        'tensorboard_port': 19011 + 1000 * cuda_device,
     },
     'loggerplex': {
-        'port': 9009 + 1000 * cuda_device,
+        'port': 19009 + 1000 * cuda_device,
     },
     'learner': {
-        'prefetch_port': 9010 + 1000 * cuda_device,
+        'prefetch_port': 19010 + 1000 * cuda_device,
     },
 }
 LOCAL_SESSION_CONFIG = extend_config(SESSION_CONFIG_EXT, LOCAL_SESSION_CONFIG)
