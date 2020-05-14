@@ -63,8 +63,8 @@ LEARNING_RATE_MIN = 0.00001
 prefix = '../../../../pcnn_mj_dataset/pcd_npy/'
 datalist_path = prefix + 'train_datalist1000.txt'
 labellist_path = prefix + 'train_labellist1000.txt'
-test_datalist_path = prefix + 'test_datalist200.txt'
-test_labellist_path = prefix + 'test_labellist200.txt'
+test_datalist_path = prefix + 'test_datalist1000.txt'
+test_labellist_path = prefix + 'test_labellist1000.txt'
 num_class = int(open(labellist_path, 'r').readline().strip())
 
 save_dir = '../../../../exp/pcnn/'
@@ -125,7 +125,7 @@ def test_model(model):
         _, pred = out.max(dim=1)
         acc_cnt = (pred == label).sum().item()
         total_acc = total_acc[0] + acc_cnt, total_acc[1] + data.shape[0]
-        if batch_idx % 25 == 0:
+        if batch_idx % 5 == 0:
             print('Testing: Epoch {} iter {}: acc {:.4f}'.format(epoch, batch_idx, acc_cnt / data.shape[0]))
             tb_logger.add_scalar('test_batch_acc', acc_cnt / data.shape[0])
     test_acc = total_acc[0] / total_acc[1]
@@ -260,7 +260,7 @@ for epoch in range(start_epoch, args.max_epoch+1):
         _, pred = out.max(dim=1)
         acc_cnt = (pred == label).sum().item()
         total_acc = total_acc[0] + acc_cnt, total_acc[1] + data.shape[0]
-        if global_step % 25 == 0:
+        if global_step % 5 == 0:
             print('Epoch {} iter {}: loss {}, acc {:.4f}'.format(epoch, batch_idx, loss.item(), acc_cnt/data.shape[0]))
             ftrain_batch_acc.write('Epoch {} iter {}: {}\n'.format(epoch, batch_idx, acc_cnt/data.shape[0]))
             tb_logger.add_scalar('train_batch_acc', acc_cnt/data.shape[0], global_step)
@@ -286,7 +286,7 @@ for epoch in range(start_epoch, args.max_epoch+1):
             _, pred = out.max(dim=1)
             acc_cnt = (pred == label).sum().item()
             total_acc = total_acc[0] + acc_cnt, total_acc[1] + data.shape[0]
-            if batch_idx % 25 == 0:
+            if batch_idx % 5 == 0:
                 print('Testing: Epoch {} iter {}: acc {:.4f}'.format(epoch, batch_idx, acc_cnt / data.shape[0]))
                 tb_logger.add_scalar('test_batch_acc', acc_cnt/data.shape[0])
         test_acc = total_acc[0]/total_acc[1]
