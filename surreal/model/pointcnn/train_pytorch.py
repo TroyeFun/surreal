@@ -265,6 +265,7 @@ for epoch in range(start_epoch, args.max_epoch+1):
             print('Epoch {} iter {}: loss {}, acc {:.4f}'.format(epoch, batch_idx, loss.item(), acc_cnt/data.shape[0]))
             ftrain_batch_acc.write('Epoch {} iter {}: {}\n'.format(epoch, batch_idx, acc_cnt/data.shape[0]))
             tb_logger.add_scalar('train_batch_acc', acc_cnt/data.shape[0], global_step)
+            tb_logger.add_scalar('train_batch_loss', loss.item(), global_step)
         global_step += 1
     train_acc = total_acc[0]/total_acc[1]
     print('Epoch {} done: acc {:.4f}'.format(epoch, train_acc))
