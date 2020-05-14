@@ -267,7 +267,6 @@ for epoch in range(start_epoch, args.max_epoch+1):
 
 """
 TODO:
-tensorboard
 transform: sample, shuffle, jitter,
 """
 
