@@ -202,7 +202,7 @@ if args.resume is not None:
 lr = args.base_lr * args.decay_rate ** (global_step // args.decay_step)
 optimizer = torch.optim.SGD(model.parameters(), lr=lr, momentum=args.momentum)
 loss_fn = nn.CrossEntropyLoss()
-print('====Start training: epoch {}, global_step {}, lr {}')
+print('====Start training: epoch {}, global_step {}, lr {}'.format(start_epoch, global_step, lr))
 for epoch in range(start_epoch, args.max_epoch+1):
     if epoch > 1 and global_step % args.decay_step == 0:
         lr = args.base_lr * args.decay_rate ** (global_step // args.decay_step)
@@ -264,6 +264,7 @@ for epoch in range(start_epoch, args.max_epoch+1):
         tb_logger.add_scalar('test_epoch_acc', test_acc)
 
         save_model(model, epoch, global_step, test_acc)
+    ftrain_epoch_acc.flush(), ftrain_batch_acc.flush(), ftest_epoch_acc.flush()
 
 """
 TODO:
