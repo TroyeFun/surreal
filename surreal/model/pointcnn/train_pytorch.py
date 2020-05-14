@@ -61,10 +61,10 @@ BN_DECAY_CLIP = 0.99
 LEARNING_RATE_MIN = 0.00001
         
 prefix = '../../../../pcnn_mj_dataset/pcd_npy/'
-datalist_path = prefix + 'train_datalist.txt'
-labellist_path = prefix + 'train_labellist.txt'
-test_datalist_path = prefix + 'test_datalist.txt'
-test_labellist_path = prefix + 'test_labellist.txt'
+datalist_path = prefix + 'train_datalist1000.txt'
+labellist_path = prefix + 'train_labellist1000.txt'
+test_datalist_path = prefix + 'test_datalist200.txt'
+test_labellist_path = prefix + 'test_labellist200.txt'
 num_class = int(open(labellist_path, 'r').readline().strip())
 
 save_dir = '../../../../exp/pcnn/'
