@@ -20,6 +20,7 @@ from torch.utils.data import Dataset, DataLoader
 from utils.model import RandPointCNN
 from utils.util_funcs import knn_indices_func
 from utils.util_layers import Dense
+from tensorboardX import SummaryWriter
 
 #from ipdb import set_trace as pdb
 
@@ -33,13 +34,14 @@ parser = argparse.ArgumentParser()
 #parser.add_argument('--gpu', type=int, default=0, help='GPU to use [default: GPU 0]')
 parser.add_argument('--gpu', action='store_true', help='whether to use gpu')
 parser.add_argument('--use-mc', action='store_true', help='whether to use memcache')
+parser.add_argument('--resume', type=str, default=None, help='whether to resume, [best, latest, epoch]')
 parser.add_argument('--model', default='pointnet_cls',
                     help='Model name: pointnet_cls or pointnet_cls_basic [default: pointnet_cls]')
 parser.add_argument('--log_dir', default='log', help='Log dir [default: log]')
 parser.add_argument('--num_point', type=int, default=1024, help='Point Number [256/512/1024/2048] [default: 1024]')
 parser.add_argument('--max_epoch', type=int, default=100, help='Epoch to run [default: 250]')
 parser.add_argument('--batch_size', type=int, default=32, help='Batch Size during training [default: 32]')
-parser.add_argument('--learning_rate', type=float, default=0.01, help='Initial learning rate [default: 0.001]')
+parser.add_argument('--base_lr', type=float, default=0.01, help='Initial learning rate [default: 0.001]')
 parser.add_argument('--momentum', type=float, default=0.9, help='Initial learning rate [default: 0.9]')
 parser.add_argument('--optimizer', default='adam', help='adam or momentum [default: adam]')
 parser.add_argument('--decay_step', type=int, default=200000, help='Decay step for lr decay [default: 200000]')
@@ -60,10 +62,48 @@ LEARNING_RATE_MIN = 0.00001
 prefix = '../../../../pcnn_mj_dataset/pcd_npy/'
 datalist_path = prefix + 'train_datalist.txt'
 labellist_path = prefix + 'train_labellist.txt'
+test_datalist_path = prefix + 'test_datalist.txt'
+test_labellist_path = prefix + 'test_labellist.txt'
 num_class = int(open(labellist_path, 'r').readline().strip())
 
 save_dir = '../../../../exp/pcnn/'
 os.makedirs(join(save_dir, 'checkpoint'), exist_ok=True)
+os.makedirs(join(save_dir, 'log'), exist_ok=True)
+
+def save_model(model, epoch, global_step, accuracy):
+    ckpt = {
+        'epoch': epoch,
+        'global_step': global_step,
+        'accuracy': accuracy,
+        'state_dict': model.state_dict(),
+    }
+    path = join(save_dir, 'checkpoint', '{}.ckpt.pth'.format(epoch))
+    torch.save(ckpt, path)
+    path = join(save_dir, 'checkpoint', 'latest.ckpt.pth'.format(epoch))
+    torch.save(ckpt, path)
+    if exists(join(save_dir, 'checkpoint', 'best.ckpt.pth')):
+        path = join(save_dir, 'checkpoint', 'best.ckpt.pth'.format(epoch))
+        best_ckpt = torch.load(path)
+        best_acc = best_ckpt['accuracy']
+        if accuracy > best_acc:
+            torch.save(ckpt, path)
+    else:
+        path = join(save_dir, 'checkpoint', 'best.ckpt.pth'.format(epoch))
+        torch.save(ckpt, path)
+    print('Epoch {}: model saved'.format(epoch))
+
+def load_model(model, ckpt_name):
+    path = join(save_dir, 'checkpoint', ckpt_name)
+    def map_func(storage, location):
+        return storage.cuda()
+    assert exists(path)
+    ckpt = torch.load(path, map_location=map_func)
+
+    global global_step, start_epoch
+    global_step = ckpt['global_step']
+    start_epoch = ckpt['epoch'] + 1
+    model.load_state_dict(ckpt['state_dict'])
+    print('Ckpt loaded: {}, global step : {}, current epoch {}'.format(ckpt_name, global_step, start_epoch))
 
 class CustomDataset(Dataset):
 
@@ -114,7 +154,6 @@ class CustomDataset(Dataset):
 # Abbreviated PointCNN constructor.
 AbbPointCNN = lambda a, b, c, d, e: RandPointCNN(a, b, 3, c, d, e, knn_indices_func)
 
-
 class Classifier(nn.Module):
 
     def __init__(self):
@@ -142,29 +181,40 @@ class Classifier(nn.Module):
         return logits_mean
 
 
+tb_logger = SummaryWriter(join(save_dir, 'events'))
+ftrain_epoch_acc = open(join(save_dir, 'log', 'train_epoch_acc.txt'), 'a+')
+ftrain_batch_acc = open(join(save_dir, 'log', 'train_batch_acc.txt'), 'a+')
+ftest_epoch_acc = open(join(save_dir, 'log', 'test_epoch_acc.txt'), 'a+')
+
 print("------Building model-------")
 model = Classifier()
 if args.gpu:
     model = model.cuda()
 print("------Successfully Built model-------")
 
+global global_step, start_epoch
+global_step = 1
+start_epoch = 1
 
-lr = args.learning_rate
+if args.resume is not None:
+    load_model(model, args.resume + '.ckpt.pth')
+
+lr = args.base_lr * args.decay_rate ** (global_step // args.decay_step)
 optimizer = torch.optim.SGD(model.parameters(), lr=lr, momentum=args.momentum)
 loss_fn = nn.CrossEntropyLoss()
+print('====Start training: epoch {}, global_step {}, lr {}')
+for epoch in range(start_epoch, args.max_epoch+1):
+    if epoch > 1 and global_step % args.decay_step == 0:
+        lr = args.base_lr * args.decay_rate ** (global_step // args.decay_step)
+        lr = max(lr, LEARNING_RATE_MIN)
+        print("NEW LEARNING RATE:", lr)
+        optimizer = torch.optim.SGD(model.parameters(), lr=lr, momentum=args.momentum)
 
-global_step = 1
-for epoch in range(1, args.max_epoch+1):
-    if epoch > 1:
-        lr *= args.decay_rate ** (global_step // args.decay_step)
-        if lr > LEARNING_RATE_MIN:
-            print("NEW LEARNING RATE:", lr)
-            optimizer = torch.optim.SGD(model.parameters(), lr=lr, momentum=args.momentum)
-
+    model.train()
     train_dataset = CustomDataset(datalist_path=datalist_path, labellist_path=labellist_path, prefix=prefix)
     train_dataloader = DataLoader(dataset=train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=4,
                                  drop_last=True)
-
+    total_acc = 0, 0  # count, total number
     for batch_idx, (data, label) in enumerate(train_dataloader):
         if args.gpu:
             data, label = data.cuda(), label.cuda()
@@ -176,15 +226,47 @@ for epoch in range(1, args.max_epoch+1):
         loss.backward()
         optimizer.step()
 
+        _, pred = out.max(dim=1)
+        acc_cnt = (pred == label).sum().item()
+        total_acc = total_acc[0] + acc_cnt, total_acc[1] + data.shape[0]
         if global_step % 25 == 0:
-            print('Epoch {} iter {}: loss {}'.format(epoch, batch_idx, loss.item()))
+            print('Epoch {} iter {}: loss {}, acc {:.4f}'.format(epoch, batch_idx, loss.item(), acc_cnt/data.shape[0]))
+            ftrain_batch_acc.write('Epoch {} iter {}: {}\n'.format(epoch, batch_idx, acc_cnt/data.shape[0]))
+            tb_logger.add_scalar('train_batch_acc', acc_cnt/data.shape[0], global_step)
         global_step += 1
+    train_acc = total_acc[0]/total_acc[1]
+    print('Epoch {} done: acc {:.4f}'.format(epoch, train_acc))
+    ftrain_epoch_acc.write('Epoch {}: {}\n'.format(epoch, train_acc))
+    tb_logger.add_scalar('train_epoch_acc', train_acc, epoch)
+
+    if epoch % 1 == 0:
+        print('Start testing')
+        model.eval()
+        test_dataset = CustomDataset(datalist_path=test_datalist_path, labellist_path=test_labellist_path, prefix=prefix)
+        test_dataloader = DataLoader(dataset=test_dataset, batch_size=args.batch_size, shuffle=False, num_workers=4,
+                                      drop_last=False)
+        total_acc = 0, 0  # count, total number
+        for batch_idx, (data, label) in enumerate(test_dataloader):
+            if args.gpu:
+                data, label = data.cuda(), label.cuda()
+            P_sampled = data
+            out = model((P_sampled, P_sampled))
+
+            _, pred = out.max(dim=1)
+            acc_cnt = (pred == label).sum().item()
+            total_acc = total_acc[0] + acc_cnt, total_acc[1] + data.shape[0]
+            if batch_idx % 25 == 0:
+                print('Testing: Epoch {} iter {}: acc {:.4f}'.format(epoch, batch_idx, acc_cnt / data.shape[0]))
+                tb_logger.add_scalar('test_batch_acc', acc_cnt/data.shape[0])
+        test_acc = total_acc[0]/total_acc[1]
+        print('Testing: Epoch {} done: acc {:.4f}'.format(epoch, test_acc))
+        ftest_epoch_acc.write('Epoch {}: {}\n'.format(epoch, test_acc))
+        tb_logger.add_scalar('test_epoch_acc', test_acc)
+
+        save_model(model, epoch, global_step, test_acc)
 
 """
 TODO:
-accuracy
-test
-save, load
 tensorboard
 transform: sample, shuffle, jitter,
 """
