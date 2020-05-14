@@ -45,7 +45,7 @@ parser.add_argument('--batch_size', type=int, default=32, help='Batch Size durin
 parser.add_argument('--base_lr', type=float, default=0.01, help='Initial learning rate [default: 0.001]')
 parser.add_argument('--momentum', type=float, default=0.9, help='Initial learning rate [default: 0.9]')
 parser.add_argument('--optimizer', default='adam', help='adam or momentum [default: adam]')
-parser.add_argument('--decay_step', type=int, default=500, help='Decay step for lr decay [default: 200000]')
+parser.add_argument('--decay_step', type=int, default=1500, help='Decay step for lr decay [default: 200000]')
 parser.add_argument('--decay_rate', type=float, default=0.7, help='Decay rate for lr decay [default: 0.8]')
 args = parser.parse_args()
 
@@ -128,7 +128,6 @@ def test_model(model):
         total_acc = total_acc[0] + acc_cnt, total_acc[1] + data.shape[0]
         if batch_idx % 5 == 0:
             print('Testing: iter {}: acc {:.4f}'.format(batch_idx, acc_cnt / data.shape[0]))
-            tb_logger.add_scalar('test_batch_acc', acc_cnt / data.shape[0])
     test_acc = total_acc[0] / total_acc[1]
     print('Testing: done: acc {:.4f}'.format(test_acc))
 
@@ -290,11 +289,11 @@ for epoch in range(start_epoch, args.max_epoch+1):
             total_acc = total_acc[0] + acc_cnt, total_acc[1] + data.shape[0]
             if batch_idx % 5 == 0:
                 print('Testing: Epoch {} iter {}: acc {:.4f}'.format(epoch, batch_idx, acc_cnt / data.shape[0]))
-                tb_logger.add_scalar('test_batch_acc', acc_cnt/data.shape[0])
+                tb_logger.add_scalar('test_batch_acc', acc_cnt/data.shape[0], (epoch-1)*((len(test_dataset)-1)//args.batch_size+1) + batch_idx)
         test_acc = total_acc[0]/total_acc[1]
         print('Testing: Epoch {} done: acc {:.4f}'.format(epoch, test_acc))
         ftest_epoch_acc.write('Epoch {}: {}\n'.format(epoch, test_acc))
-        tb_logger.add_scalar('test_epoch_acc', test_acc)
+        tb_logger.add_scalar('test_epoch_acc', test_acc, epoch)
 
         save_model(model, epoch, global_step, test_acc)
     ftrain_epoch_acc.flush(), ftrain_batch_acc.flush(), ftest_epoch_acc.flush()
