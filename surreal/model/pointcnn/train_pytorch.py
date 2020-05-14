@@ -35,6 +35,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--gpu', action='store_true', help='whether to use gpu')
 parser.add_argument('--use-mc', action='store_true', help='whether to use memcache')
 parser.add_argument('--resume', type=str, default=None, help='whether to resume, [best, latest, epoch]')
+parser.add_argument('--test-only', action='store_true', help='whether to test only')
 parser.add_argument('--model', default='pointnet_cls',
                     help='Model name: pointnet_cls or pointnet_cls_basic [default: pointnet_cls]')
 parser.add_argument('--log_dir', default='log', help='Log dir [default: log]')
@@ -70,6 +71,7 @@ save_dir = '../../../../exp/pcnn/'
 os.makedirs(join(save_dir, 'checkpoint'), exist_ok=True)
 os.makedirs(join(save_dir, 'log'), exist_ok=True)
 
+
 def save_model(model, epoch, global_step, accuracy):
     ckpt = {
         'epoch': epoch,
@@ -92,6 +94,7 @@ def save_model(model, epoch, global_step, accuracy):
         torch.save(ckpt, path)
     print('Epoch {}: model saved'.format(epoch))
 
+
 def load_model(model, ckpt_name):
     path = join(save_dir, 'checkpoint', ckpt_name)
     def map_func(storage, location):
@@ -104,6 +107,30 @@ def load_model(model, ckpt_name):
     start_epoch = ckpt['epoch'] + 1
     model.load_state_dict(ckpt['state_dict'])
     print('Ckpt loaded: {}, global step : {}, current epoch {}'.format(ckpt_name, global_step, start_epoch))
+
+
+def test_model(model):
+    print('Start testing')
+    model.eval()
+    test_dataset = CustomDataset(datalist_path=test_datalist_path, labellist_path=test_labellist_path, prefix=prefix)
+    test_dataloader = DataLoader(dataset=test_dataset, batch_size=args.batch_size, shuffle=False, num_workers=4,
+                                 drop_last=False)
+    total_acc = 0, 0  # count, total number
+    for batch_idx, (data, label) in enumerate(test_dataloader):
+        if args.gpu:
+            data, label = data.cuda(), label.cuda()
+        P_sampled = data
+        out = model((P_sampled, P_sampled))
+
+        _, pred = out.max(dim=1)
+        acc_cnt = (pred == label).sum().item()
+        total_acc = total_acc[0] + acc_cnt, total_acc[1] + data.shape[0]
+        if batch_idx % 25 == 0:
+            print('Testing: Epoch {} iter {}: acc {:.4f}'.format(epoch, batch_idx, acc_cnt / data.shape[0]))
+            tb_logger.add_scalar('test_batch_acc', acc_cnt / data.shape[0])
+    test_acc = total_acc[0] / total_acc[1]
+    print('Testing: Epoch {} done: acc {:.4f}'.format(epoch, test_acc))
+
 
 class CustomDataset(Dataset):
 
@@ -198,6 +225,10 @@ start_epoch = 1
 
 if args.resume is not None:
     load_model(model, args.resume + '.ckpt.pth')
+
+if args.test_only:
+    test_model(model)
+    exit(0)
 
 lr = args.base_lr * args.decay_rate ** (global_step // args.decay_step)
 optimizer = torch.optim.SGD(model.parameters(), lr=lr, momentum=args.momentum)
