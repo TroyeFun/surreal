@@ -45,8 +45,8 @@ parser.add_argument('--batch_size', type=int, default=32, help='Batch Size durin
 parser.add_argument('--base_lr', type=float, default=0.01, help='Initial learning rate [default: 0.001]')
 parser.add_argument('--momentum', type=float, default=0.9, help='Initial learning rate [default: 0.9]')
 parser.add_argument('--optimizer', default='adam', help='adam or momentum [default: adam]')
-parser.add_argument('--decay_step', type=int, default=200000, help='Decay step for lr decay [default: 200000]')
-parser.add_argument('--decay_rate', type=float, default=0.7, help='Decay rate for lr decay [default: 0.8]')
+parser.add_argument('--decay_step', type=int, default=500, help='Decay step for lr decay [default: 200000]')
+parser.add_argument('--decay_rate', type=float, default=0.1, help='Decay rate for lr decay [default: 0.8]')
 args = parser.parse_args()
 
 if args.use_mc:
@@ -61,8 +61,8 @@ BN_DECAY_CLIP = 0.99
 LEARNING_RATE_MIN = 0.00001
         
 prefix = '../../../../pcnn_mj_dataset/pcd_npy/'
-datalist_path = prefix + 'train_datalist1000.txt'
-labellist_path = prefix + 'train_labellist1000.txt'
+datalist_path = prefix + 'train_datalist5000.txt'
+labellist_path = prefix + 'train_labellist5000.txt'
 test_datalist_path = prefix + 'test_datalist1000.txt'
 test_labellist_path = prefix + 'test_labellist1000.txt'
 num_class = int(open(labellist_path, 'r').readline().strip())
@@ -112,6 +112,7 @@ def load_model(model, ckpt_name):
 def test_model(model):
     print('Start testing')
     model.eval()
+    #model.train()
     test_dataset = CustomDataset(datalist_path=test_datalist_path, labellist_path=test_labellist_path, prefix=prefix)
     test_dataloader = DataLoader(dataset=test_dataset, batch_size=args.batch_size, shuffle=False, num_workers=4,
                                  drop_last=False)
@@ -126,10 +127,10 @@ def test_model(model):
         acc_cnt = (pred == label).sum().item()
         total_acc = total_acc[0] + acc_cnt, total_acc[1] + data.shape[0]
         if batch_idx % 5 == 0:
-            print('Testing: Epoch {} iter {}: acc {:.4f}'.format(epoch, batch_idx, acc_cnt / data.shape[0]))
+            print('Testing: iter {}: acc {:.4f}'.format(batch_idx, acc_cnt / data.shape[0]))
             tb_logger.add_scalar('test_batch_acc', acc_cnt / data.shape[0])
     test_acc = total_acc[0] / total_acc[1]
-    print('Testing: Epoch {} done: acc {:.4f}'.format(epoch, test_acc))
+    print('Testing: done: acc {:.4f}'.format(test_acc))
 
 
 class CustomDataset(Dataset):
