@@ -94,7 +94,7 @@ def make_robosuite(env_name, env_config):
         reward_shaping=True,
         # demo_config=env_config.demonstration,
     )
-    env = DoubleModeIKWrapper(env)
+    env = DoubleModeIKWrapper(env, use_abs_pose=True, clip_vel=env_config.get('clip_vel', 0))
 
     env = RobosuiteWrapper(env, env_config)
     env = FilterWrapper(env, env_config)
