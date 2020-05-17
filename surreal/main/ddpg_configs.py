@@ -234,6 +234,8 @@ DDPG_BLOCK_LIFTING_ENV_CONFIG = Config({
         #'low_dim':['position', 'velocity', 'robot-state', 'proprio', 'cube_pos', 'cube_quat', 'gripper_to_cube', 'low-dim'],
         'low_dim':['robot-state', 'object-state'],
     },
+
+    'place_in_train_agent': True,   # False if place action only taken in eval agent
 })
 
 DDPG_BLOCK_LIFTING_ENV_CONFIG.extend(DDPG_DEFAULT_ENV_CONFIG)
