@@ -73,6 +73,7 @@ def make_gym(env_name, env_config):
 
 def make_robosuite(env_name, env_config):
     import robosuite
+    from robosuite.wrappers import DoubleModeIKWrapper
     pixel_input = env_config.pixel_input or env_config.pcd_input
     camera_depth = env_config.use_depth or env_config.pcd_input
     camera_height, camera_width = env_config.get('camera_size', (84, 84))
@@ -93,6 +94,8 @@ def make_robosuite(env_name, env_config):
         reward_shaping=True,
         # demo_config=env_config.demonstration,
     )
+    env = DoubleModeIKWrapper(env)
+
     env = RobosuiteWrapper(env, env_config)
     env = FilterWrapper(env, env_config)
     env = ObservationConcatenationWrapper(env)
