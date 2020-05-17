@@ -18,7 +18,7 @@ from .action_noise import *
 from .param_noise import NormalParameterNoise, AdaptiveNormalParameterNoise
 
 
-class DDPGAgent(Agent):
+class DDPGAgentPickPlace(Agent):
     '''
     DDPGAgent: subclass of Agent that contains DDPG algorithm logic
     Attributes:
@@ -152,6 +152,15 @@ class DDPGAgent(Agent):
         return params
 
     def act(self, obs):
+        if self.agent_mode in ['eval_deterministic', 'eval_deterministic_local'] and \
+                obs['env_info'].get('if_place', False):
+            place_target_pose = obs['env_info']['place_target_pose']
+            gripper_action = 0 if obs['env_info']['if_drop'] else 1
+            action = {'action': np.concatenate([place_target_pose, [gripper_action]]),
+                      'if_send_exp': False,
+                      'use_ik_mode': True}
+            return action
+
         with tx.device_scope(self.gpu_ids):
             if self.sleep_time > 0.0:
                 time.sleep(self.sleep_time)
