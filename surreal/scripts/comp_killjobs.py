@@ -16,7 +16,9 @@ flog = open('log.txt', 'r')
 jobs = []
 for line in flog.readlines():
     if 'lixiaojie' in line:
-        job = line.split(' ')[1]
+        line = line.split(' ')
+        line = list(filter(lambda s: len(s)>0, line))
+        job = line[1]
         jobs.append(job)
         cmd = prefix + 'kill ' + job
         os.system(cmd)

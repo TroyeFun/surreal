@@ -264,7 +264,9 @@ class RobosuiteWrapper(Wrapper):
         if self.use_depth:
             obs['image'] = np.concatenate((obs['image'], np.expand_dims(obs['depth'], 2)), 2)
 
-        obs['env_info'] = collections.OrderedDict()
+        if 'env_info' not in obs.keys():
+            obs['env_info'] = collections.OrderedDict()
+
         if self.need_target_color:
             #obs['env_info']['target_color'] = np.array(self.env.target_color)
             obs['env_info']['target_color'] = self.env.target_color
@@ -276,8 +278,9 @@ class RobosuiteWrapper(Wrapper):
 
         if self.use_depth:
             obs['image'] = np.concatenate((obs['image'], np.expand_dims(obs['depth'], 2)), 2)
-        
-        obs['env_info'] = collections.OrderedDict()
+
+        if 'env_info' not in obs.keys():
+            obs['env_info'] = collections.OrderedDict()
         if self.need_target_color:
             #obs['env_info']['target_color'] = np.array(self.env.target_color)
             obs['env_info']['target_color'] = self.env.target_color
@@ -300,7 +303,9 @@ class RobosuiteWrapper(Wrapper):
         for k in spec:
             spec[k] = tuple(np.array(spec[k]).shape)
 
-        spec['env_info'] = collections.OrderedDict()
+        if 'env_info' not in spec.keys():
+            spec['env_info'] = collections.OrderedDict()
+
         if self.use_camera_info:
             model = self.env.sim.model
             cam_id = model.camera_name2id(self.env.camera_name)

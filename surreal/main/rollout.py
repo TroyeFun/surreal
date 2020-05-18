@@ -8,7 +8,7 @@ from glob import glob
 
 from surreal.env import *
 import surreal.utils as U
-from surreal.agent import PPOAgent, DDPGAgent
+from surreal.agent import PPOAgent, DDPGAgent, DDPGAgentPickPlace
 
 from benedict import BeneDict
 
@@ -60,7 +60,8 @@ if __name__ == "__main__":
     folder = args.folder
     checkpoint = args.checkpoint
     render = args.render
-    algo = PPOAgent if (not args.algo or args.algo != 'ddpg') else DDPGAgent
+    #algo = PPOAgent if (not args.algo or args.algo != 'ddpg') else DDPGAgent
+    algo = PPOAgent if (not args.algo or args.algo != 'ddpg') else DDPGAgentPickPlace
     record = args.record
     record_every = args.record_every if args.record_every else 1
     record_folder = args.record_folder

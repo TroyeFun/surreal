@@ -306,3 +306,54 @@ class ExpSenderWrapperMultiStepMovingWindow(ExpSenderWrapperMultiStep):
                     self.last_n.popleft()
         self._obs = obs_next
         return obs_next, reward, done, info
+
+
+class ExpSenderWrapperSSARNStepBootstrapJudgeSend(ExpSenderWrapperSSAR):
+    """
+        Sends observations in format
+        {
+            'obs': [state, next_state]
+            'action': action,
+            'reward': reward,
+            'done': done,
+            'info': info
+        }
+        but next_state is n_steps after state and reward is cumulated reward over n_steps
+        Used for n_step reward computations.
+
+        Requires:
+            @self.learner_config.algo.n_step: number of steps to cumulate over
+            @self.learner_config.algo.gamma: discount factor
+    """
+    def __init__(self, env, learner_config, session_config):
+        super().__init__(env, learner_config, session_config)
+        self.n_step = self.learner_config.algo.n_step
+        self.gamma = self.learner_config.algo.gamma
+        self.last_n = deque()
+
+    def _reset(self):
+        self._obs, info = self.env.reset()
+        self.last_n.clear()
+        return self._obs, info
+
+    def _step(self, action):
+        obs_next, reward, done, info = self.env.step(action)
+
+        if isinstance(action, dict):
+            action_dict = action
+            action = action_dict['action']
+            if_send = action_dict['if_send_exp']
+            if not if_send:
+                return obs_next, reward, done, info
+
+        for i, exp_list in enumerate(self.last_n):
+            # Update Next Observation and done to be from the final of n_steps and reward to be weighted sum
+            exp_list[0][1] = obs_next
+            exp_list[2] += pow(self.gamma, self.n_step - i - 1) * reward
+            exp_list[3] = done
+        self.last_n.append([[self._obs, obs_next], action, reward, done, info])
+        if len(self.last_n) == self.n_step:
+            self.send(self.last_n.popleft())
+
+        self._obs = obs_next
+        return obs_next, reward, done, info

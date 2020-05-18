@@ -11,14 +11,14 @@ import torchx as tx
 import torchx.nn as nnx
 from surreal.distributed import ModuleDict
 from surreal.model.ddpg_net import DDPGModel
-from surreal.env import ExpSenderWrapperSSARNStepBootstrap
+from surreal.env import ExpSenderWrapperSSARNStepBootstrap, ExpSenderWrapperSSARNStepBootstrapJudgeSend
 from surreal.session import ConfigError
 from .base import Agent
 from .action_noise import *
 from .param_noise import NormalParameterNoise, AdaptiveNormalParameterNoise
 
 
-class DDPGAgent(Agent):
+class DDPGAgentPickPlace(Agent):
     '''
     DDPGAgent: subclass of Agent that contains DDPG algorithm logic
     Attributes:
@@ -152,6 +152,16 @@ class DDPGAgent(Agent):
         return params
 
     def act(self, obs):
+        if obs['env_info'].get('if_place', False):
+            if self.env_config.get('place_in_train_agent', False) or \
+                  self.agent_mode in ['eval_deterministic', 'eval_deterministic_local']:
+                place_target_pose = obs['env_info']['place_target_pose']
+                gripper_action = -1 if obs['env_info']['if_drop'] else 1
+                action = {'action': np.concatenate([place_target_pose, [gripper_action]]),
+                          'if_send_exp': False,
+                          'use_ik_mode': True}
+                return action
+
         with tx.device_scope(self.gpu_ids):
             if self.sleep_time > 0.0:
                 time.sleep(self.sleep_time)
@@ -213,7 +223,7 @@ class DDPGAgent(Agent):
 
     def prepare_env_agent(self, env):
         env = super().prepare_env_agent(env)
-        env = ExpSenderWrapperSSARNStepBootstrap(env,
+        env = ExpSenderWrapperSSARNStepBootstrapJudgeSend(env,
                                                  self.learner_config,
                                                  self.session_config)
         return env
