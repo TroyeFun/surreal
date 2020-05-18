@@ -261,6 +261,7 @@ class Agent(object, metaclass=U.AutoInitializeMeta):
         obs, info = env.reset()
         total_reward = 0.0
 
+
         flag_debug = False
         while True:
             if self.render:
@@ -297,8 +298,8 @@ class Agent(object, metaclass=U.AutoInitializeMeta):
 
         if self.current_episode % 20 == 1:
             #import numpy as np
-            #if getattr(self.env.unwrapped, 'object_type', None):
-            #    self.log.info('\nDebug: object_type: ', self.env.unwrapped.object_type)
+            #if getattr(self.env.unwrapped, 'target_object', None):
+            #    self.log.info('\nDebug: object_type: ', self.env.unwrapped.target_object)
             #self.log.info('Debug: object_state', obs['low_dim']['flat_inputs'][30:])
             #self.log.info('Debug: reward', reward)
             #env = self.env.unwrapped
