@@ -113,8 +113,12 @@ class Checkpoint(object):
             else:
                 return None
         # overwrite attributes on self.tracked_obj
-        with open(ckpt_path, 'rb') as fp:
-            data = pickle.load(fp)
+        #with open(ckpt_path, 'rb') as fp:
+        #    data = pickle.load(fp)
+        def map_func(storage, location):
+            return storage.cuda()
+        data = torch.load(ckpt_path, map_location=map_func)
+            
         for attr_name in self.metadata.tracked_attrs:
             attr_value = getattr(self.tracked_obj, attr_name)
             if isinstance(attr_value, (torch.nn.Module, torch.optim.Optimizer)):
@@ -242,8 +246,9 @@ class Checkpoint(object):
                 data[attr_name] = attr_value.state_dict()
             else:
                 data[attr_name] = attr_value
-        with open(self.ckpt_path(suffix), 'wb') as fp:
-            pickle.dump(data, fp)
+        #with open(self.ckpt_path(suffix), 'wb') as fp:
+        #    pickle.dump(data, fp)
+        torch.save(data, self.ckpt_path(suffix))
 
     def save(self, score=None,
              global_steps=None,

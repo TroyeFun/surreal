@@ -223,7 +223,7 @@ class DDPGAgentPickPlace(Agent):
 
     def prepare_env_agent(self, env):
         env = super().prepare_env_agent(env)
-        env = ExpSenderWrapperSSARNStepBootstrap(env,
+        env = ExpSenderWrapperSSARNStepBootstrapJudgeSend(env,
                                                  self.learner_config,
                                                  self.session_config)
         return env
