@@ -11,7 +11,7 @@ import torchx as tx
 import torchx.nn as nnx
 from surreal.distributed import ModuleDict
 from surreal.model.ddpg_net import DDPGModel
-from surreal.env import ExpSenderWrapperSSARNStepBootstrap
+from surreal.env import ExpSenderWrapperSSARNStepBootstrap, ExpSenderWrapperSSARNStepBootstrapJudgeSend
 from surreal.session import ConfigError
 from .base import Agent
 from .action_noise import *

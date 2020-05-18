@@ -7,4 +7,5 @@
 
 #surreal-tmux create spp_ppo_na4_pix --algorithm ppo --num_agents 4 --env robosuite:SawyerPickPlace -- --restore-folder ../../exp/tmux/spp-ppo-na4-pix/checkpoint/
 #surreal-tmux create spp_ppo_na4_nopix_run2 --algorithm ppo --num_agents 4 --env robosuite:SawyerPickPlace  -- --restore-folder ../../exp/tmux/spp-ppo-na4-nopix-run2/checkpoint/
-surreal-tmux create test --algorithm ppo --num_agents 1 --env robosuite:SawyerPickPlaceTarget
+#surreal-tmux create test --algorithm ppo --num_agents 1 --env robosuite:SawyerPickPlaceTarget
+python -u subproc/surreal_subproc.py sppmtt-placeintrain-ddpg-na4-nopix --algorithm ddpg --num_agents 4 --num_evals 1 --env robosuite:SawyerPickPlaceMultiTaskTarget #-- --restore-folder ../../../exp/sppsglmttct-pick-ddpg-na8-nopix/checkpoint/
