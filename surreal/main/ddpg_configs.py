@@ -203,6 +203,11 @@ DDPG_BLOCK_LIFTING_LEARNER_CONFIG = Config({
             'theta': 0.15,
             'dt': 1e-3,
         },
+        'gamma': .99,
+        # Unroll the bellman update
+        'n_step': 20,
+        # Send experiences every `stride` steps
+        'stride': 1,
     },
 })
 
