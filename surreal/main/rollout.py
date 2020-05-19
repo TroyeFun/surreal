@@ -3,6 +3,7 @@ import sys
 import time
 import argparse
 from os import path
+import torch
 
 from glob import glob
 
@@ -16,9 +17,15 @@ def restore_model(folder, filename):
     """
     Loads model from an experiment folder.
     """
-    path_to_ckpt = path.join(folder, "checkpoint", filename)
-    with open(path_to_ckpt, 'rb') as fp:
-        data = pickle.load(fp)
+    ckpt_path = path.join(folder, "checkpoint", filename)
+    #with open(path_to_ckpt, 'rb') as fp:
+    #    data = pickle.load(fp)
+    def map_func(storage, location):
+        return storage.cuda()
+    if torch.cuda.is_available():
+        data = torch.load(ckpt_path, map_location=map_func)
+    else:
+        data = torch.load(ckpt_path, map_location='cpu')
     return data['model']
 
 def restore_config(path_to_config):
