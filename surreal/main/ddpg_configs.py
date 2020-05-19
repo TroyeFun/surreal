@@ -5,7 +5,7 @@ from surreal.session import (
     BASE_LEARNER_CONFIG,
     BASE_ENV_CONFIG
     )
-from surreal.agent import DDPGAgent
+from surreal.agent import DDPGAgent, DDPGAgentPickPlace
 from surreal.learner import DDPGLearner
 from surreal.replay import UniformReplay
 from surreal.launch import SurrealDefaultLauncher
@@ -234,6 +234,8 @@ DDPG_BLOCK_LIFTING_ENV_CONFIG = Config({
         #'low_dim':['position', 'velocity', 'robot-state', 'proprio', 'cube_pos', 'cube_quat', 'gripper_to_cube', 'low-dim'],
         'low_dim':['robot-state', 'object-state'],
     },
+
+    'place_in_train_agent': True,   # False if place action only taken in eval agent
 })
 
 DDPG_BLOCK_LIFTING_ENV_CONFIG.extend(DDPG_DEFAULT_ENV_CONFIG)
@@ -266,6 +268,7 @@ DDPG_PICK_PLACE_ENV_CONFIG = Config({
         #'low_dim':['position', 'velocity', 'robot-state', 'proprio', 'cube_pos', 'cube_quat', 'gripper_to_cube', 'low-dim'],
         'low_dim':['robot-state', 'object-state'],
     },
+    'place_in_train_agent': False,   # False if place action only taken in eval agent
 })
 
 DDPG_PICK_PLACE_ENV_CONFIG.extend(DDPG_DEFAULT_ENV_CONFIG)
@@ -284,22 +287,24 @@ DDPG_PICK_PLACE_LEARNER_CONFIG.extend(DDPG_BLOCK_LIFTING_LEARNER_CONFIG)
 class DDPGLauncher(SurrealDefaultLauncher):
     def __init__(self):
         learner_class = DDPGLearner
-        agent_class = DDPGAgent
+        #agent_class = DDPGAgent
+        agent_class = DDPGAgentPickPlace
         replay_class = UniformReplay
         session_config = DDPG_DEFAULT_SESSION_CONFIG
 
         #learner_config = DDPG_DEFAULT_LEARNER_CONFIG
         #env_config = DDPG_DEFAULT_ENV_CONFIG
-        learner_config = DDPG_BLOCK_LIFTING_LEARNER_CONFIG
-        env_config = DDPG_BLOCK_LIFTING_ENV_CONFIG
-        #learner_config = DDPG_PICK_PLACE_LEARNER_CONFIG
-        #env_config = DDPG_PICK_PLACE_ENV_CONFIG
+        #learner_config = DDPG_BLOCK_LIFTING_LEARNER_CONFIG
+        #env_config = DDPG_BLOCK_LIFTING_ENV_CONFIG
+        learner_config = DDPG_PICK_PLACE_LEARNER_CONFIG
+        env_config = DDPG_PICK_PLACE_ENV_CONFIG
         super().__init__(agent_class,
                          learner_class,
                          replay_class,
                          session_config,
                          env_config,
-                         learner_config)
+                         learner_config,
+                         eval_mode='eval_deterministic')
 
     def setup(self, argv):
         """

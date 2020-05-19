@@ -273,14 +273,15 @@ class Agent(object, metaclass=U.AutoInitializeMeta):
             
             if flag_debug:
                 #print('debug rendering', env.unwrapped.timestep)
-                env.unwrapped.render()
+                #env.unwrapped.render()
                 import robosuite.utils.visualize as vis
                 color = 'yellow'
-                pdb()
+                if 'if_place' in obs['env_info']:
+                    pdb()
                 #vis.save_rgbd_img(obs['pixel']['camera0'], color)
                 #pcd = vis.get_pcd(obs['pixel']['camera0'], self.obs_spec['env_info']['camera_mat'], self.obs_spec['env_info']['camera_pos'], self.obs_spec['env_info']['camera_f'], color)
-                pcd = obs['pixel']['pcd']
-                vis.save_pcd(pcd)
+                #pcd = obs['pixel']['pcd']
+                #vis.save_pcd(pcd)
             #if obs['low_dim']['flat_inputs'][-8] >= 0.9:
             #    print('debug: warning')
 
