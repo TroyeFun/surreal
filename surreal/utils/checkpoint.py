@@ -117,7 +117,10 @@ class Checkpoint(object):
         #    data = pickle.load(fp)
         def map_func(storage, location):
             return storage.cuda()
-        data = torch.load(ckpt_path, map_location=map_func)
+        if torch.cuda.is_available():
+            data = torch.load(ckpt_path, map_location=map_func)
+        else:
+            data = torch.load(ckpt_path, map_location='cpu')
             
         for attr_name in self.metadata.tracked_attrs:
             attr_value = getattr(self.tracked_obj, attr_name)

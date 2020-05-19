@@ -235,7 +235,7 @@ DDPG_BLOCK_LIFTING_ENV_CONFIG = Config({
         'low_dim':['robot-state', 'object-state'],
     },
 
-    'place_in_train_agent': False,   # False if place action only taken in eval agent
+    'place_in_train_agent': True,   # False if place action only taken in eval agent
 })
 
 DDPG_BLOCK_LIFTING_ENV_CONFIG.extend(DDPG_DEFAULT_ENV_CONFIG)
@@ -268,6 +268,7 @@ DDPG_PICK_PLACE_ENV_CONFIG = Config({
         #'low_dim':['position', 'velocity', 'robot-state', 'proprio', 'cube_pos', 'cube_quat', 'gripper_to_cube', 'low-dim'],
         'low_dim':['robot-state', 'object-state'],
     },
+    'place_in_train_agent': False,   # False if place action only taken in eval agent
 })
 
 DDPG_PICK_PLACE_ENV_CONFIG.extend(DDPG_DEFAULT_ENV_CONFIG)
@@ -293,16 +294,17 @@ class DDPGLauncher(SurrealDefaultLauncher):
 
         #learner_config = DDPG_DEFAULT_LEARNER_CONFIG
         #env_config = DDPG_DEFAULT_ENV_CONFIG
-        learner_config = DDPG_BLOCK_LIFTING_LEARNER_CONFIG
-        env_config = DDPG_BLOCK_LIFTING_ENV_CONFIG
-        #learner_config = DDPG_PICK_PLACE_LEARNER_CONFIG
-        #env_config = DDPG_PICK_PLACE_ENV_CONFIG
+        #learner_config = DDPG_BLOCK_LIFTING_LEARNER_CONFIG
+        #env_config = DDPG_BLOCK_LIFTING_ENV_CONFIG
+        learner_config = DDPG_PICK_PLACE_LEARNER_CONFIG
+        env_config = DDPG_PICK_PLACE_ENV_CONFIG
         super().__init__(agent_class,
                          learner_class,
                          replay_class,
                          session_config,
                          env_config,
-                         learner_config)
+                         learner_config,
+                         eval_mode='eval_deterministic')
 
     def setup(self, argv):
         """
