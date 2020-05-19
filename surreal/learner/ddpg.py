@@ -199,6 +199,8 @@ class DDPGLearner(Learner):
                 device_name = 'cuda'
 
             for modality in obs:
+                if modality == 'env_info':
+                    continue
                 for key in obs[modality]:
                     if modality == 'pixel':
                         obs[modality][key] = (torch.tensor(obs[modality][key], dtype=torch.uint8)
@@ -208,6 +210,8 @@ class DDPGLearner(Learner):
                             .to(torch.device(device_name))).detach()
 
             for modality in obs_next:
+                if modality == 'env_info':
+                    continue
                 for key in obs_next[modality]:
                     if modality == 'pixel':
                         obs_next[modality][key] = (torch.tensor(obs_next[modality][key], dtype=torch.uint8)
