@@ -219,12 +219,15 @@ DDPG_BLOCK_LIFTING_ENV_CONFIG = Config({
 
     # If true, DDPG will expect an image at obs['pixel']['camera0']
     'pixel_input': False,
-    #'camera_size': (256, 256),  # (h, w), (84, 84) if not set
-    'pcd_input': False,  # point cloud
+    'use_depth': True,
+    'camera_size': (256, 256),  # (h, w), (84, 84) if not set
+    'pcd_input': True,  # point cloud
+    'num_points': 128,
     
     'use_grayscale': False,
     # Stacks previous image frames together to provide history information
-    'frame_stacks': 3,
+    'frame_stacks': 1,
+    'frame_stack_concatenate_on_env': True,
     # Each action will be played this number of times. The reward of the consecutive actions will be the the reward
     # of the last action in the sequence
     'action_repeat': 1,
@@ -240,7 +243,7 @@ DDPG_BLOCK_LIFTING_ENV_CONFIG = Config({
         'low_dim':['robot-state', 'object-state'],
     },
 
-    'place_in_train_agent': True,   # False if place action only taken in eval agent
+    'place_in_train_agent': False,   # False if place action only taken in eval agent
 })
 
 DDPG_BLOCK_LIFTING_ENV_CONFIG.extend(DDPG_DEFAULT_ENV_CONFIG)
