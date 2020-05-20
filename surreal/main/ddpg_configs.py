@@ -203,6 +203,11 @@ DDPG_BLOCK_LIFTING_LEARNER_CONFIG = Config({
             'theta': 0.15,
             'dt': 1e-3,
         },
+        'gamma': .99,
+        # Unroll the bellman update
+        #'n_step': 20,
+        # Send experiences every `stride` steps
+        'stride': 1,
     },
 })
 
@@ -268,6 +273,7 @@ DDPG_PICK_PLACE_ENV_CONFIG = Config({
         #'low_dim':['position', 'velocity', 'robot-state', 'proprio', 'cube_pos', 'cube_quat', 'gripper_to_cube', 'low-dim'],
         'low_dim':['robot-state', 'object-state'],
     },
+    'place_in_train_agent': False,   # False if place action only taken in eval agent
 })
 
 DDPG_PICK_PLACE_ENV_CONFIG.extend(DDPG_DEFAULT_ENV_CONFIG)
@@ -302,7 +308,8 @@ class DDPGLauncher(SurrealDefaultLauncher):
                          replay_class,
                          session_config,
                          env_config,
-                         learner_config)
+                         learner_config,
+                         eval_mode='eval_deterministic')
 
     def setup(self, argv):
         """

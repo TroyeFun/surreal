@@ -154,7 +154,7 @@ class DDPGAgentPickPlace(Agent):
     def act(self, obs):
         if obs['env_info'].get('if_place', False):
             if self.env_config.get('place_in_train_agent', False) or \
-                  self.agent_mode in ['eval_deterministic', 'eval_deterministic_local']:
+                  self.agent_mode.startswith('eval_'):
                 place_target_pose = obs['env_info']['place_target_pose']
                 gripper_action = -1 if obs['env_info']['if_drop'] else 1
                 action = {'action': np.concatenate([place_target_pose, [gripper_action]]),
