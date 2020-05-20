@@ -299,10 +299,10 @@ class DDPGLauncher(SurrealDefaultLauncher):
 
         #learner_config = DDPG_DEFAULT_LEARNER_CONFIG
         #env_config = DDPG_DEFAULT_ENV_CONFIG
-        #learner_config = DDPG_BLOCK_LIFTING_LEARNER_CONFIG
-        #env_config = DDPG_BLOCK_LIFTING_ENV_CONFIG
-        learner_config = DDPG_PICK_PLACE_LEARNER_CONFIG
-        env_config = DDPG_PICK_PLACE_ENV_CONFIG
+        learner_config = DDPG_BLOCK_LIFTING_LEARNER_CONFIG
+        env_config = DDPG_BLOCK_LIFTING_ENV_CONFIG
+        #learner_config = DDPG_PICK_PLACE_LEARNER_CONFIG
+        #env_config = DDPG_PICK_PLACE_ENV_CONFIG
         super().__init__(agent_class,
                          learner_class,
                          replay_class,
