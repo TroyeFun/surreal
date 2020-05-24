@@ -261,6 +261,7 @@ class Agent(object, metaclass=U.AutoInitializeMeta):
         obs, info = env.reset()
         total_reward = 0.0
 
+
         flag_debug = False
         while True:
             if self.render:
@@ -297,17 +298,17 @@ class Agent(object, metaclass=U.AutoInitializeMeta):
 
         if self.current_episode % 20 == 1:
             #import numpy as np
-            #if getattr(self.env.unwrapped, 'object_type', None):
-            #    self.log.info('\nDebug: object_type: ', self.env.unwrapped.object_type)
-            #self.log.info('Debug: object_state', obs['low_dim']['flat_inputs'][-10:])
+            #if getattr(self.env.unwrapped, 'target_object', None):
+            #    self.log.info('\nDebug: object_type: ', self.env.unwrapped.target_object)
+            #self.log.info('Debug: object_state', obs['low_dim']['flat_inputs'][30:])
             #self.log.info('Debug: reward', reward)
             #env = self.env.unwrapped
-            #cube_pos = env.sim.data.body_xpos[env.cube_body_id]
+            #cube_pos = env.sim.data.body_xpos[env.target_body_id]
             #gripper_site_pos = env.sim.data.site_xpos[env.eef_site_id]
             #dist = np.linalg.norm(gripper_site_pos - cube_pos)
             #reaching_reward = 1 - np.tanh(10.0 * dist)
             #self.log.info('Debug: [ dist, r_reward]', dist, reaching_reward)
-            #self.log.info('Debug: object size', self.env.unwrapped.mujoco_objects['cube'].size)
+            ##self.log.info('Debug: object size', self.env.unwrapped.mujoco_objects['cube'].size)
 
             self.log.info('Episode {} reward {}'
                           .format(self.current_episode,
