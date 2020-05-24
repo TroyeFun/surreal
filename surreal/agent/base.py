@@ -279,7 +279,7 @@ class Agent(object, metaclass=U.AutoInitializeMeta):
                 color = 'yellow'
                 #vis.save_rgbd_img(obs['pixel']['camera0'], color)
                 #pcd = vis.get_pcd(obs['pixel']['camera0'], self.obs_spec['env_info']['camera_mat'], self.obs_spec['env_info']['camera_pos'], self.obs_spec['env_info']['camera_f'], color)
-                #pcd = obs['pixel']['pcd']
+                pcd = obs['pixel']['pcd']
                 vis.save_pcd(pcd)
                 pdb()
             #if obs['low_dim']['flat_inputs'][-8] >= 0.9:
