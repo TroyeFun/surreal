@@ -276,12 +276,11 @@ class Agent(object, metaclass=U.AutoInitializeMeta):
                 #env.unwrapped.render()
                 import robosuite.utils.visualize as vis
                 color = 'yellow'
-                if 'if_place' in obs['env_info']:
-                    pdb()
                 #vis.save_rgbd_img(obs['pixel']['camera0'], color)
                 #pcd = vis.get_pcd(obs['pixel']['camera0'], self.obs_spec['env_info']['camera_mat'], self.obs_spec['env_info']['camera_pos'], self.obs_spec['env_info']['camera_f'], color)
                 #pcd = obs['pixel']['pcd']
-                #vis.save_pcd(pcd)
+                vis.save_pcd(pcd)
+                pdb()
             #if obs['low_dim']['flat_inputs'][-8] >= 0.9:
             #    print('debug: warning')
 
