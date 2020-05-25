@@ -301,14 +301,14 @@ class RobosuiteWrapper(Wrapper):
             spec['image'] = np.concatenate((spec['image'], np.expand_dims(spec['depth'], 2)), 2)
 
         for k in spec:
+            if k == 'env_info':
+                continue
             spec[k] = tuple(np.array(spec[k]).shape)
-
-        if 'env_info' not in spec.keys():
-            spec['env_info'] = collections.OrderedDict()
 
         if self.use_camera_info:
             model = self.env.sim.model
             cam_id = model.camera_name2id(self.env.camera_name)
+
             spec['env_info']['camera_mat'] = model.cam_mat0[cam_id].copy().reshape(3,3)
             spec['env_info']['camera_pos'] = model.cam_pos0[cam_id].copy()
             fovy = model.cam_fovy[cam_id]

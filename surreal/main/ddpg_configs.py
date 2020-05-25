@@ -195,6 +195,7 @@ DDPG_BLOCK_LIFTING_LEARNER_CONFIG = Config({
                 'type': 'hard',
                 'interval': 500,
             },
+            'if_regress_obj_pose': False,
         },
         'exploration': {
             'max_sigma': 2.0,
@@ -244,6 +245,9 @@ DDPG_BLOCK_LIFTING_ENV_CONFIG = Config({
     },
 
     'place_in_train_agent': False,   # False if place action only taken in eval agent
+    'env_kwargs': {
+        'obj_pose_in_env_info': True,
+    }
 })
 
 DDPG_BLOCK_LIFTING_ENV_CONFIG.extend(DDPG_DEFAULT_ENV_CONFIG)

@@ -11,7 +11,7 @@ import torchx as tx
 from ipdb import set_trace as pdb
 
 
-class DDPGLearner(Learner):
+class DDPGLearnerPickPlace(Learner):
     '''
     DDPGLearner: subclass of Learner that contains DDPG algorithm logic
     Attributes:
@@ -98,6 +98,7 @@ class DDPGLearner(Learner):
                 self.log.info('Clipping critic gradient at {}'.format(self.critic_gradient_clip_value))
 
             self.action_dim = self.env_config.action_spec.dim[0]
+            self.if_regress_obj_pose = self.learner_config.algo.network.if_regress_obj_pose
             self.model = DDPGModel(
                 obs_spec=self.env_config.obs_spec,
                 action_dim=self.action_dim,
@@ -105,6 +106,7 @@ class DDPGLearner(Learner):
                 use_cuda=(not self.gpu_ids == 'cpu'),
                 if_pixel_input=self.env_config.pixel_input,
                 if_pcd_input=self.env_config.pcd_input,
+                if_regress_obj_pose=self.if_regress_obj_pose,
             )
 
             self.model_target = DDPGModel(
@@ -114,6 +116,7 @@ class DDPGLearner(Learner):
                 use_cuda=(not self.gpu_ids == 'cpu'),
                 if_pixel_input=self.env_config.pixel_input,
                 if_pcd_input=self.env_config.pcd_input,
+                if_regress_obj_pose=self.if_regress_obj_pose,
             )
 
             if self.use_double_critic:
@@ -125,6 +128,7 @@ class DDPGLearner(Learner):
                     use_cuda=(not self.gpu_ids == 'cpu'),
                     if_pixel_input=self.env_config.pixel_input,
                     if_pcd_input=self.env_config.pcd_input,
+                    if_regress_obj_pose=self.if_regress_obj_pose,
                 )
 
                 self.model_target2 = DDPGModel(
@@ -135,6 +139,7 @@ class DDPGLearner(Learner):
                     use_cuda=(not self.gpu_ids == 'cpu'),
                     if_pixel_input=self.env_config.pixel_input,
                     if_pcd_input=self.env_config.pcd_input,
+                    if_regress_obj_pose=self.if_regress_obj_pose,
                 )
 
             self.critic_criterion = nn.MSELoss()
@@ -202,23 +207,23 @@ class DDPGLearner(Learner):
                 if modality == 'env_info':
                     continue
                 for key in obs[modality]:
-                    #if modality == 'pixel':
-                    #    obs[modality][key] = (torch.tensor(obs[modality][key], dtype=torch.uint8)
-                    #        .to(torch.device(device_name))).float().detach()
-                    #else:
-                    obs[modality][key] = (torch.tensor(obs[modality][key], dtype=torch.float32)
-                        .to(torch.device(device_name))).detach()
+                    if modality == 'pixel':
+                        obs[modality][key] = (torch.tensor(obs[modality][key], dtype=torch.uint8)
+                            .to(torch.device(device_name))).float().detach()
+                    else:
+                        obs[modality][key] = (torch.tensor(obs[modality][key], dtype=torch.float32)
+                            .to(torch.device(device_name))).detach()
 
             for modality in obs_next:
                 if modality == 'env_info':
                     continue
                 for key in obs_next[modality]:
-                    #if modality == 'pixel':
-                    #    obs_next[modality][key] = (torch.tensor(obs_next[modality][key], dtype=torch.uint8)
-                    #        .to(torch.device(device_name))).float().detach()
-                    #else:
-                    obs_next[modality][key] = (torch.tensor(obs_next[modality][key], dtype=torch.float32)
-                        .to(torch.device(device_name))).detach()
+                    if modality == 'pixel':
+                        obs_next[modality][key] = (torch.tensor(obs_next[modality][key], dtype=torch.uint8)
+                            .to(torch.device(device_name))).float().detach()
+                    else:
+                        obs_next[modality][key] = (torch.tensor(obs_next[modality][key], dtype=torch.float32)
+                            .to(torch.device(device_name))).detach()
 
             actions = torch.tensor(actions, dtype=torch.float32).to(torch.device(device_name))
             rewards = torch.tensor(rewards, dtype=torch.float32).to(torch.device(device_name))

@@ -252,17 +252,25 @@ class PCNNStemNetwork(nn.Module):
     """
     Designed to take 128-point pointcloud as input.
     """
-    def __init__(self, D_out=32):
+    def __init__(self, D_out=32, if_regress_obj_pose=False):
         super().__init__()
+        self.if_regress_obj_pose = if_regress_obj_pose
         self.pcnn = nn.Sequential(
             RandPointCNN(3, 16, 3, 8, 1, 64),
             RandPointCNN(16, 32, 3, 8, 2, 32),
             RandPointCNN(32, 64, 3, 8, 2, 16),
             )
         self.fc = Dense(64, D_out)
+        if self.if_regress_obj_pose:
+            self.pos_regressor = Dense(D_out, 3)  # [pos(3), quat(4)]
+            self.quat_regressor = Dense(D_out, 4, nn.Softmax(dim=1))
 
     def forward(self, x):
         x = self.pcnn((x,x))
         x = self.fc(x[1])
         x = x.mean(dim=1)
+        if self.if_regress_obj_pose:
+            pos = self.pos_regressor(x)
+            quat = self.quat_regressor(x)
+            return x, torch.cat([pos, quat], dim=1)
         return x

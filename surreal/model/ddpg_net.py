@@ -23,6 +23,7 @@ class DDPGModel(nnx.Module):
                  critic_only=False,
                  if_pixel_input=False,
                  if_pcd_input=False,
+                 if_regress_obj_pose=False, # for pcd mode only
                  ):
         super(DDPGModel, self).__init__()
 
@@ -43,6 +44,7 @@ class DDPGModel(nnx.Module):
         # hyperparameters
         self.if_pixel_input = if_pixel_input
         self.if_pcd_input = if_pcd_input
+        self.if_regress_obj_pose = if_regress_obj_pose
         self.action_dim = action_dim
         self.use_layernorm = use_layernorm
 
@@ -63,7 +65,7 @@ class DDPGModel(nnx.Module):
             #                      self.obs_spec['env_info']['camera_f'],
             #                      self.obs_spec['pixel']['camera0'],
             #                      use_cuda)
-            self.pcnn_stem = PCNNStemNetwork(self.model_config.pcnn_feature_dim)
+            self.pcnn_stem = PCNNStemNetwork(self.model_config.pcnn_feature_dim, self.if_regress_obj_pose)
             if use_cuda:
                 self.pcnn_stem = self.pcnn_stem.cuda()
             concatenated_perception_dim += self.model_config.pcnn_feature_dim
@@ -133,22 +135,35 @@ class DDPGModel(nnx.Module):
             concatenated_inputs.append(cnn_updated)
 
         if self.if_pcd_input:
-            #obs_pcd = self.pix2pcd(obs['pixel']['camera0'], obs['env_info']['target_color'].item()) 
-            obs_pcd = self.pcnn_stem(obs['pixel']['pcd'])
+            #obs_pcd = self.pix2pcd(obs['pixel']['camera0'], obs['env_info']['target_color'].item())
+            if self.if_regress_obj_pose:
+                obs_pcd, obj_pose = self.pcnn_stem(obs['pixel']['pcd'])
+            else:
+                obs_pcd = self.pcnn_stem(obs['pixel']['pcd'])
             concatenated_inputs.append(obs_pcd)
 
         if 'low_dim' in obs:
             concatenated_inputs.append(obs['low_dim']['flat_inputs'])
         concatenated_inputs = torch.cat(concatenated_inputs, dim=1)
+
+        if self.if_pcd_input and self.if_regress_obj_pose:
+            return concatenated_inputs, obj_pose
         return concatenated_inputs
 
     def forward(self, obs_in, calculate_value=True, action=None):
-        obs_in = self.forward_perception(obs_in)
+        if self.if_pcd_input and self.if_regress_obj_pose:
+            obs_in, obj_pose = self.forward_perception(obs_in)
+        else:
+            obs_in = self.forward_perception(obs_in)
+
         if action is None:
             action = self.forward_actor(obs_in)
         value = None
         if calculate_value:
             value = self.forward_critic(obs_in, action)
+
+        if self.if_pcd_input and self.if_regress_obj_pose:
+            return action, value, obj_pose
         return action, value
 
     def scale_image(self, obs, scaling_factor=255.0):

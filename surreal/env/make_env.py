@@ -78,6 +78,8 @@ def make_robosuite(env_name, env_config):
     camera_depth = env_config.use_depth or env_config.pcd_input
     camera_height, camera_width = env_config.get('camera_size', (84, 84))
 
+    kwargs = env_config.get('env_kwargs', {})
+
     env = robosuite.make(
         env_name,
         has_renderer=env_config.render,
@@ -93,6 +95,7 @@ def make_robosuite(env_name, env_config):
         camera_depth=camera_depth,
         reward_shaping=True,
         # demo_config=env_config.demonstration,
+        **kwargs,
     )
     env = DoubleModeIKWrapper(env, use_abs_pose=True, clip_vel=env_config.get('clip_vel', 0))
 
