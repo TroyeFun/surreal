@@ -6,7 +6,7 @@ from surreal.session import (
     BASE_ENV_CONFIG
     )
 from surreal.agent import DDPGAgent, DDPGAgentPickPlace
-from surreal.learner import DDPGLearner
+from surreal.learner import DDPGLearner, DDPGLearnerPickPlace
 from surreal.replay import UniformReplay
 from surreal.launch import SurrealDefaultLauncher
 from surreal.env import make_env_config
@@ -210,8 +210,10 @@ DDPG_BLOCK_LIFTING_LEARNER_CONFIG = Config({
         'stride': 1,
     },
     'model': {
-        'if_regress_obj_pose': False,
-    }
+        'if_regress_obj_pose': True,
+    },
+    'verbose': True,
+    'print_freq': 100,
 })
 
 DDPG_BLOCK_LIFTING_LEARNER_CONFIG.extend(DDPG_DEFAULT_LEARNER_CONFIG)
@@ -300,8 +302,9 @@ DDPG_PICK_PLACE_LEARNER_CONFIG.extend(DDPG_BLOCK_LIFTING_LEARNER_CONFIG)
 
 class DDPGLauncher(SurrealDefaultLauncher):
     def __init__(self):
-        learner_class = DDPGLearner
+        #learner_class = DDPGLearner
         #agent_class = DDPGAgent
+        learner_class = DDPGLearnerPickPlace
         agent_class = DDPGAgentPickPlace
         replay_class = UniformReplay
         session_config = DDPG_DEFAULT_SESSION_CONFIG

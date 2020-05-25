@@ -181,6 +181,8 @@ class DDPGLearnerPickPlace(Learner):
             self.critic_update_time = U.TimeRecorder()
             self.actor_update_time = U.TimeRecorder()
 
+            self.verbose = learner_config.get('verbose', False)
+
     # override
     def preprocess(self, batch):
         '''
@@ -377,11 +379,18 @@ class DDPGLearnerPickPlace(Learner):
             if self.use_double_critic:
                 tensorplex_update_dict['Q_policy2'] = y_policy2.mean().item()
             if self.if_regress_obj_pose:
-                tensorplex_update_dict.extend({
+                tensorplex_update_dict.update({
                     'total_loss': total_loss.item(),
                     'obj_pos_loss': obj_pos_loss.item(),
                     'obj_quat_loss': obj_quat_loss.item(),
                 })
+
+            if self.verbose and self.current_iteration % self.learner_config.print_freq == 1:
+                message = 'Iter {}: loss total {:.6f} '.format(self.current_iteration, total_loss.item())
+                if self.if_regress_obj_pose:
+                    message += '| critic {:.6f} | obj_pos {:.6f} | obj_quat {:.6f} | q_policy {:.6f}'.format(
+                        critic_loss.item(), obj_pos_loss.item(), obj_quat_loss.item(), y_policy.mean().item())
+                self.log.info(message)
 
             # (possibly) update target networks
             self._target_update()

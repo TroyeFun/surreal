@@ -263,7 +263,7 @@ class PCNNStemNetwork(nn.Module):
         self.fc = Dense(64, D_out)
         if self.if_regress_obj_pose:
             self.pos_regressor = Dense(D_out, 3)  # [pos(3), quat(4)]
-            self.quat_regressor = Dense(D_out, 4, nn.Softmax(dim=1))
+            self.quat_regressor = Dense(D_out, 4, activation=nn.Softmax(dim=1))
 
     def forward(self, x):
         x = self.pcnn((x,x))
