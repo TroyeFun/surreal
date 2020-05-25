@@ -116,20 +116,33 @@ def test_model(model):
     test_dataset = CustomDataset(datalist_path=test_datalist_path, labellist_path=test_labellist_path, prefix=prefix)
     test_dataloader = DataLoader(dataset=test_dataset, batch_size=args.batch_size, shuffle=False, num_workers=4,
                                  drop_last=False)
+
+    features = []
+    labels = []
+
     total_acc = 0, 0  # count, total number
     for batch_idx, (data, label) in enumerate(test_dataloader):
         if args.gpu:
             data, label = data.cuda(), label.cuda()
         P_sampled = data
-        out = model((P_sampled, P_sampled))
+        out, feat = model((P_sampled, P_sampled), output_feature=True)
 
         _, pred = out.max(dim=1)
         acc_cnt = (pred == label).sum().item()
         total_acc = total_acc[0] + acc_cnt, total_acc[1] + data.shape[0]
         if batch_idx % 5 == 0:
             print('Testing: iter {}: acc {:.4f}'.format(batch_idx, acc_cnt / data.shape[0]))
+
+        features.append(feat.detach().cpu().numpy())
+        labels.append(label.detach().cpu().numpy())
+
     test_acc = total_acc[0] / total_acc[1]
     print('Testing: done: acc {:.4f}'.format(test_acc))
+    features = np.concatenate(features)
+    labels = np.concatenate(labels)
+    print('feature {}, labels {}'.format(features.shape, labels.shape))
+    np.save(join(save_dir, 'features_pcnn2.npy'), features)
+    np.save(join(save_dir, 'labels_pcnn2.npy'), labels)
 
 
 class CustomDataset(Dataset):
@@ -200,11 +213,14 @@ class Classifier(nn.Module):
             Dense(64, num_class, with_bn=False, activation=None)
         )
 
-    def forward(self, x):
+    def forward(self, x, output_feature=False):
         x = self.pcnn1(x)
         x = self.pcnn2(x)[1]  # grab features
-        logits = self.fcn(x)
+        feature = self.fcn[:2](x)
+        logits = self.fcn[2](feature)
         logits_mean = torch.mean(logits, dim=1)
+        if output_feature:
+            return logits_mean, x.mean(dim=1)
         return logits_mean
 
 
