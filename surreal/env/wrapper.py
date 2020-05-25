@@ -314,6 +314,12 @@ class RobosuiteWrapper(Wrapper):
             fovy = model.cam_fovy[cam_id]
             spec['env_info']['camera_f'] = 0.5 * self.env.camera_height / math.tan(fovy * math.pi / 360)
 
+            extent = extent = model.stat.extent 
+            near = model.vis.map.znear * extent
+            far = model.vis.map.zfar * extent  
+            spec['env_info']['depth_near'] = near
+            spec['env_info']['depth_far'] = far
+
         return self._add_modality(spec, verbose=True)
 
     def action_spec(self): # we haven't finalized the action spec of mujocomanip
@@ -380,7 +386,7 @@ class Pix2PCDWrapper(Wrapper):
         if pcd.shape[0] < self.num_points:
             n_repeat = self.num_points // pcd.shape[0]
             min_pt, max_pt = pcd.min(axis=0), pcd.max(axis=0)
-            scale = np.linalg.norm(max_pt - min_pt) / 10
+            scale = np.linalg.norm(max_pt - min_pt) / 50
 
             pcds = [pcd]
             for _ in range(n_repeat):
@@ -401,9 +407,9 @@ class Pix2PCDWrapper(Wrapper):
         #color = vis.id2color[obs['env_info']['target_color'].item()]
         color = obs['env_info'].pop('target_color')
         pcd = vis.get_pcd(obs['pixel']['camera0'], self.cam_mat, self.cam_pos, self.cam_f,
-                         color, self.x_pix, self.y_pix, flip=False, format='hwc')
+                         self.near, self.far, color, self.x_pix, self.y_pix, flip=False, format='hwc')
         if pcd.shape[0] == 0: # no points detected
-            print('debug: warning: no points detected')
+            #print('debug: warning: no points detected')
             pcd = self._get_random_pcd()
         else:
             pcd = self._sample(pcd)
@@ -434,6 +440,8 @@ class Pix2PCDWrapper(Wrapper):
         self.cam_mat = spec['env_info']['camera_mat']
         self.cam_pos = spec['env_info']['camera_pos']
         self.cam_f = spec['env_info']['camera_f']
+        self.near = spec['env_info']['depth_near']
+        self.far = spec['env_info']['depth_far']
         
         if not self.pixel_input:
             spec['pixel'].pop('camera0')

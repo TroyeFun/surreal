@@ -16,7 +16,7 @@ from surreal.session import ConfigError
 from .base import Agent
 from .action_noise import *
 from .param_noise import NormalParameterNoise, AdaptiveNormalParameterNoise
-
+from ipdb import set_trace as pdb
 
 class DDPGAgentPickPlace(Agent):
     '''
