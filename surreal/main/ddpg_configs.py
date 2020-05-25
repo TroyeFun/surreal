@@ -195,7 +195,6 @@ DDPG_BLOCK_LIFTING_LEARNER_CONFIG = Config({
                 'type': 'hard',
                 'interval': 500,
             },
-            'if_regress_obj_pose': False,
         },
         'exploration': {
             'max_sigma': 2.0,
@@ -210,6 +209,9 @@ DDPG_BLOCK_LIFTING_LEARNER_CONFIG = Config({
         # Send experiences every `stride` steps
         'stride': 1,
     },
+    'model': {
+        'if_regress_obj_pose': False,
+    }
 })
 
 DDPG_BLOCK_LIFTING_LEARNER_CONFIG.extend(DDPG_DEFAULT_LEARNER_CONFIG)

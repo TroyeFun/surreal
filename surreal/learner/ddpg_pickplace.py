@@ -98,7 +98,7 @@ class DDPGLearnerPickPlace(Learner):
                 self.log.info('Clipping critic gradient at {}'.format(self.critic_gradient_clip_value))
 
             self.action_dim = self.env_config.action_spec.dim[0]
-            self.if_regress_obj_pose = self.learner_config.algo.network.if_regress_obj_pose
+            self.if_regress_obj_pose = self.learner_config.model.if_regress_obj_pose
             self.model = DDPGModel(
                 obs_spec=self.env_config.obs_spec,
                 action_dim=self.action_dim,
@@ -106,7 +106,6 @@ class DDPGLearnerPickPlace(Learner):
                 use_cuda=(not self.gpu_ids == 'cpu'),
                 if_pixel_input=self.env_config.pixel_input,
                 if_pcd_input=self.env_config.pcd_input,
-                if_regress_obj_pose=self.if_regress_obj_pose,
             )
 
             self.model_target = DDPGModel(
@@ -116,7 +115,6 @@ class DDPGLearnerPickPlace(Learner):
                 use_cuda=(not self.gpu_ids == 'cpu'),
                 if_pixel_input=self.env_config.pixel_input,
                 if_pcd_input=self.env_config.pcd_input,
-                if_regress_obj_pose=self.if_regress_obj_pose,
             )
 
             if self.use_double_critic:
@@ -128,7 +126,6 @@ class DDPGLearnerPickPlace(Learner):
                     use_cuda=(not self.gpu_ids == 'cpu'),
                     if_pixel_input=self.env_config.pixel_input,
                     if_pcd_input=self.env_config.pcd_input,
-                    if_regress_obj_pose=self.if_regress_obj_pose,
                 )
 
                 self.model_target2 = DDPGModel(
@@ -139,10 +136,13 @@ class DDPGLearnerPickPlace(Learner):
                     use_cuda=(not self.gpu_ids == 'cpu'),
                     if_pixel_input=self.env_config.pixel_input,
                     if_pcd_input=self.env_config.pcd_input,
-                    if_regress_obj_pose=self.if_regress_obj_pose,
                 )
 
             self.critic_criterion = nn.MSELoss()
+
+            if self.if_regress_obj_pose:
+                self.obj_pos_criterion = nn.MSELoss()
+                self.obj_quat_criterion = nn.KLDivLoss()
 
             self.log.info('Using Adam for critic with learning rate {}'.format(self.learner_config.algo.network.lr_critic))
             self.critic_optim = torch.optim.Adam(
@@ -207,23 +207,29 @@ class DDPGLearnerPickPlace(Learner):
                 if modality == 'env_info':
                     continue
                 for key in obs[modality]:
-                    if modality == 'pixel':
-                        obs[modality][key] = (torch.tensor(obs[modality][key], dtype=torch.uint8)
-                            .to(torch.device(device_name))).float().detach()
-                    else:
-                        obs[modality][key] = (torch.tensor(obs[modality][key], dtype=torch.float32)
-                            .to(torch.device(device_name))).detach()
+                    #if modality == 'pixel':
+                    #    obs[modality][key] = (torch.tensor(obs[modality][key], dtype=torch.uint8)
+                    #        .to(torch.device(device_name))).float().detach()
+                    #else:
+                    obs[modality][key] = (torch.tensor(obs[modality][key], dtype=torch.float32)
+                        .to(torch.device(device_name))).detach()
+
+            if self.if_regress_obj_pose:
+                obs['env_info']['obj_pos'] = (torch.tensor(obs['env_info']['obj_pos'], dtype=torch.float32)
+                                              .to(torch.device(device_name))).detach()
+                obs['env_info']['obj_quat'] = (torch.tensor(obs['env_info']['obj_quat'], dtype=torch.float32)
+                                              .to(torch.device(device_name))).detach()
 
             for modality in obs_next:
                 if modality == 'env_info':
                     continue
                 for key in obs_next[modality]:
-                    if modality == 'pixel':
-                        obs_next[modality][key] = (torch.tensor(obs_next[modality][key], dtype=torch.uint8)
-                            .to(torch.device(device_name))).float().detach()
-                    else:
-                        obs_next[modality][key] = (torch.tensor(obs_next[modality][key], dtype=torch.float32)
-                            .to(torch.device(device_name))).detach()
+                    #if modality == 'pixel':
+                    #    obs_next[modality][key] = (torch.tensor(obs_next[modality][key], dtype=torch.uint8)
+                    #        .to(torch.device(device_name))).float().detach()
+                    #else:
+                    obs_next[modality][key] = (torch.tensor(obs_next[modality][key], dtype=torch.float32)
+                        .to(torch.device(device_name))).detach()
 
             actions = torch.tensor(actions, dtype=torch.float32).to(torch.device(device_name))
             rewards = torch.tensor(rewards, dtype=torch.float32).to(torch.device(device_name))
@@ -287,7 +293,10 @@ class DDPGLearnerPickPlace(Learner):
                 y = y.detach()
 
                 # compute Q(s_t, a_t)
-                perception = self.model.forward_perception(obs)
+                if self.if_regress_obj_pose:
+                    perception, obj_pose = self.model.forward_perception(obs, True)
+                else:
+                    perception = self.model.forward_perception(obs)
                 y_policy = self.model.forward_critic(
                     perception,
                     actions.detach()
@@ -295,7 +304,10 @@ class DDPGLearnerPickPlace(Learner):
 
                 y_policy2 = None
                 if self.use_double_critic:
-                    perception2 = self.model2.forward_perception(obs)
+                    if self.if_regress_obj_pose:
+                        perception2, obj_pose2 = self.model2.forward_perception(obs, True)
+                    else:
+                        perception2 = self.model2.forward_perception(obs)
                     y_policy2 = self.model2.forward_critic(
                         perception2,
                         actions.detach()
@@ -307,8 +319,15 @@ class DDPGLearnerPickPlace(Learner):
                 #if self.is_pixel_input:
                 #    self.model.perception.zero_grad()
                 self.model.clear_critic_grad()
-                critic_loss = self.critic_criterion(y_policy, y)        
-                critic_loss.backward()
+
+                critic_loss = self.critic_criterion(y_policy, y)
+                if self.if_regress_obj_pose:
+                    obj_pos_loss = self.obj_pos_criterion(obj_pose[:, :3], obs['env_info']['obj_pos'])
+                    obj_quat_loss = self.obj_quat_criterion(torch.log(obj_pose[:, 3:]), obs['env_info']['obj_quat'])
+                    total_loss = critic_loss + obj_pos_loss + obj_quat_loss
+                else:
+                    total_loss = critic_loss
+                total_loss.backward()
                 if self.clip_critic_gradient:
                     self.model.critic.clip_grad_value(self.critic_gradient_clip_value)
                 self.critic_optim.step()
@@ -319,7 +338,13 @@ class DDPGLearnerPickPlace(Learner):
                     #    self.model2.perception.zero_grad()
                     self.model2.clear_critic_grad()
                     critic_loss = self.critic_criterion(y_policy2, y)
-                    critic_loss.backward()
+                    if self.if_regress_obj_pose:
+                        obj_pos_loss = self.obj_pos_criterion(obj_pose[:, :3], obs['env_info']['obj_pos'])
+                        obj_quat_loss = self.obj_quat_criterion(torch.log(obj_pose[:, 3:]), obs['env_info']['obj_quat'])
+                        total_loss = critic_loss + obj_pos_loss + obj_quat_loss
+                    else:
+                        total_loss = critic_loss
+                    total_loss.backward()
                     if self.clip_critic_gradient:
                         self.model2.critic.clip_grad_value(self.critic_gradient_clip_value)
                     self.critic_optim2.step()
@@ -351,6 +376,12 @@ class DDPGLearnerPickPlace(Learner):
             }
             if self.use_double_critic:
                 tensorplex_update_dict['Q_policy2'] = y_policy2.mean().item()
+            if self.if_regress_obj_pose:
+                tensorplex_update_dict.extend({
+                    'total_loss': total_loss.item(),
+                    'obj_pos_loss': obj_pos_loss.item(),
+                    'obj_quat_loss': obj_quat_loss.item(),
+                })
 
             # (possibly) update target networks
             self._target_update()
